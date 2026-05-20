@@ -62,30 +62,30 @@ Billetera virtual propia, custodia de dinero, liquidaciones bancarias reales, tr
 
 ```
 EMPRESA
-  └── SUCURSAL
-        ├── EMPLEADO
-        │      └── USUARIO
-        │
-        ├── MESA
-        │
-        ├── GRUPO_PROPINA
-        │      └── GRUPO_PROPINA_EMPLEADO
-        │
-        ├── CODIGO_QR
-        │
-        ├── ORDEN_PROPINA
-        │      ├── PAGO
-        │      │    └── WEBHOOK_PAGO
-        │      ├── EVENTO_ORDEN
-        │      └── DISTRIBUCION_PROPINA
-        │
-        └── NOTIFICACION
-               └── NOTIFICACION_DESTINATARIO
+  ├── SUCURSAL
+  │     ├── EMPLEADO
+  │     │      └── USUARIO
+  │     │
+  │     ├── MESA
+  │     │
+  │     ├── GRUPO_PROPINA
+  │     │      └── GRUPO_PROPINA_EMPLEADO
+  │     │
+  │     ├── CODIGO_QR
+  │     │
+  │     ├── ORDEN_PROPINA
+  │     │      ├── PAGO
+  │     │      │    └── WEBHOOK_PAGO
+  │     │      ├── EVENTO_ORDEN
+  │     │      └── DISTRIBUCION_PROPINA
+  │     │
+  │     └── NOTIFICACION
+  │            └── NOTIFICACION_DESTINATARIO
+  │
+  └── REPORTE_AUTOMATICO
 
 USUARIO
-  ├── NOTIFICACION_DESTINATARIO
-  ├── SOLICITUD_AGENTE
-  └── REPORTE_AUTOMATICO
+  └── NOTIFICACION_DESTINATARIO
 ```
 
 ### Entidades
@@ -342,34 +342,18 @@ Destinatarios de una notificación y su estado de lectura.
 
 ---
 
-#### SolicitudAgente
-Registro de uso de los agentes inteligentes por parte del dueño.
-
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | Long | PK |
-| usuario_id | Long | FK → Usuario |
-| tipoAgente | Enum | NOTIFICACION_INTERNA, REPORTE_AUTOMATICO |
-| entradaUsuario | String | Instrucción informal del usuario |
-| salidaGenerada | String | Texto generado por el agente |
-| estado | Enum | GENERADA, APROBADA, RECHAZADA, EDITADA, ENVIADA |
-| fechaCreacion | LocalDateTime | Fecha de la solicitud |
-
----
-
 #### ReporteAutomatico
-Reportes generados por el agente de reportes.
+Almacena los reportes generados por el agente externo (n8n / script) para mostrarlos en el dashboard administrativo.
 
 | Campo | Tipo | Descripción |
 |---|---|---|
 | id | Long | PK |
 | empresa_id | Long | FK → Empresa |
 | sucursal_id | Long | FK → Sucursal (nullable) |
-| generado_por_usuario_id | Long | FK → Usuario |
 | tipoReporte | Enum | DIARIO, SEMANAL, MENSUAL, PERSONALIZADO |
 | periodoDesde | LocalDate | Inicio del período |
 | periodoHasta | LocalDate | Fin del período |
-| resumenGenerado | String | Texto del reporte |
+| resumenGenerado | String | Texto del reporte generado por el agente |
 | fechaGeneracion | LocalDateTime | Fecha de generación |
 
 ---
@@ -538,21 +522,10 @@ erDiagram
         datetime fechaLectura
     }
 
-    SOLICITUD_AGENTE {
-        bigint id PK
-        bigint usuario_id FK
-        string tipoAgente
-        string entradaUsuario
-        string salidaGenerada
-        string estado
-        datetime fechaCreacion
-    }
-
     REPORTE_AUTOMATICO {
         bigint id PK
         bigint empresa_id FK
         bigint sucursal_id FK
-        bigint generado_por_usuario_id FK
         string tipoReporte
         date periodoDesde
         date periodoHasta
@@ -575,8 +548,6 @@ erDiagram
 
     USUARIO ||--o| EMPLEADO : "es"
     USUARIO ||--o{ NOTIFICACION_DESTINATARIO : "recibe"
-    USUARIO ||--o{ SOLICITUD_AGENTE : "genera"
-    USUARIO ||--o{ REPORTE_AUTOMATICO : "genera"
     USUARIO ||--o{ NOTIFICACION : "crea"
 
     EMPLEADO ||--o{ CODIGO_QR : "tiene"
