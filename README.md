@@ -594,23 +594,4 @@ TipQR/
 └── Front/        # Angular 21 — Interfaz web
 ```
 
-## Cómo levantar el proyecto localmente
 
-### Backend
-
-```bash
-cd Back
-./mvnw spring-boot:run
-```
-
-Requiere PostgreSQL corriendo localmente. Configurar credenciales en `src/main/resources/application.properties`.
-
-### Frontend
-
-```bash
-cd Front
-npm install
-npm start
-```
-
-La app corre en `http://localhost:4200`.
