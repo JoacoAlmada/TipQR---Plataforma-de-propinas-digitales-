@@ -594,4 +594,59 @@ TipQR/
 └── Front/        # Angular 21 — Interfaz web
 ```
 
+---
 
+## Cómo levantar el proyecto localmente
+
+### Requisitos previos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Java 21
+- Node.js 20+
+
+### 1. Base de datos (Docker)
+
+```bash
+docker compose up -d
+```
+
+Levanta PostgreSQL en `localhost:5432` y pgAdmin en `http://localhost:5050`.
+
+| pgAdmin | Valor |
+|---|---|
+| Email | admin@tipqr.com |
+| Password | admin |
+| Host BD | tipqr-postgres |
+| Puerto BD | 5432 |
+| Usuario BD | postgres |
+| Password BD | postgres |
+
+### 2. Backend
+
+```bash
+cd Back
+cp .env.example .env
+./mvnw spring-boot:run
+```
+
+- API: `http://localhost:8080`
+- Health check: `GET http://localhost:8080/api/health`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+> Las credenciales se configuran con variables de entorno en el archivo `.env` (excluido del repositorio). Ver `.env.example` como referencia.
+
+### 3. Frontend
+
+```bash
+cd Front
+npm install
+npm start
+```
+
+La app corre en `http://localhost:4200`.
+
+### Bajar los servicios
+
+```bash
+docker compose down
+```
