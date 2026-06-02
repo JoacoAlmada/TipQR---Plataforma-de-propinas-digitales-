@@ -23,15 +23,42 @@ El sistema **no** funciona como billetera virtual ni custodia dinero. El procesa
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Java 21 + Spring Boot 4 |
-| Frontend | Angular 21 + Tailwind CSS 4 |
-| Base de datos | PostgreSQL |
-| Autenticación | Spring Security + JWT |
+| Backend | Java 21 + Spring Boot 3.4.3 |
+| Frontend | Angular 21 + Tailwind CSS 4 (SSR con @angular/ssr) |
+| Base de datos | PostgreSQL 16 |
+| Autenticación | Spring Security 6 + JWT (jjwt, HS256, stateless) |
 | ORM | Spring Data JPA + Hibernate |
-| Documentación API | Swagger / OpenAPI |
+| Documentación API | Swagger / OpenAPI (springdoc) |
 | Pagos | Mercado Pago Checkout Pro (ambiente de prueba) + Webhooks |
-| Testing | JUnit 5, Mockito, Postman |
+| Testing | JUnit 5 + Mockito (95 tests unitarios), H2 en memoria |
 | Utilidades | Lombok, librería QR |
+
+---
+
+## Estado del proyecto
+
+Funcionalidades efectivamente implementadas hasta la fecha:
+
+### ✅ Autenticación y estructura base (Sprint 1)
+- Login con JWT stateless (HS256) y BCrypt para el hash de contraseñas.
+- Control de acceso por rol (`DUENO`, `ENCARGADO`, `EMPLEADO`) con `@PreAuthorize` en el backend y *guards* + interceptor en el frontend.
+- Manejo centralizado de errores de seguridad (401 sin token, 403 sin permiso) con respuestas JSON.
+- Frontend base: pantalla de login, layout con sidebar, dashboards diferenciados para administrador y empleado.
+- Las 16 entidades JPA del dominio modeladas y mapeadas.
+
+### ✅ Gestión de empresa — ABM completo (Sprint 2)
+- CRUD de empresa de punta a punta (backend + frontend): listar, ver, crear, editar y activar/desactivar.
+- Validaciones de datos (nombre obligatorio, formato de CUIT, email) y control de CUIT duplicado.
+- Listado y formulario en el frontend con validaciones reactivas.
+
+### ✅ Calidad
+- **95 tests unitarios** (JUnit 5 + Mockito) cubriendo seguridad, servicios, controladores, entidades y DTOs.
+
+### 🚧 En desarrollo / próximos sprints
+- ABM de sucursales, empleados, mesas y grupos de propina (Sprint 2).
+- Generación de QR, pantalla pública de propina, órdenes e integración con Mercado Pago (Sprint 3).
+- Conciliación de pagos, distribución grupal, dashboards y reportes (Sprint 4).
+- Comunicaciones internas y agentes de IA (Sprint 5).
 
 ---
 
@@ -573,16 +600,58 @@ erDiagram
 
 ---
 
+## API REST
+
+Base URL: `http://localhost:8080`. Todos los endpoints (excepto los públicos) requieren el header `Authorization: Bearer <token>`.
+
+### Endpoints públicos
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/health` | Health check del servicio |
+| `POST` | `/api/auth/login` | Login. Devuelve token JWT + datos del usuario |
+| `GET` | `/swagger-ui.html` | Documentación interactiva OpenAPI |
+
+### Perfil (usuario autenticado)
+
+| Método | Endpoint | Rol requerido |
+|---|---|---|
+| `GET` | `/api/perfil` | Cualquier autenticado |
+| `GET` | `/api/admin/perfil` | `DUENO`, `ENCARGADO` |
+| `GET` | `/api/empleado/perfil` | `EMPLEADO` |
+
+### Empresas
+
+| Método | Endpoint | Rol requerido | Descripción |
+|---|---|---|---|
+| `GET` | `/api/empresas` | `DUENO`, `ENCARGADO` | Listar empresas |
+| `GET` | `/api/empresas/{id}` | `DUENO`, `ENCARGADO` | Ver detalle |
+| `POST` | `/api/empresas` | `DUENO` | Crear empresa |
+| `PUT` | `/api/empresas/{id}` | `DUENO` | Editar empresa |
+| `PATCH` | `/api/empresas/{id}/estado?estado=true\|false` | `DUENO` | Activar / desactivar |
+
+Los errores se devuelven con un cuerpo uniforme: `{ "status": 409, "error": "...", "timestamp": "..." }` (404 recurso inexistente, 409 CUIT duplicado, 400 validación, 401 sin token, 403 sin permiso).
+
+### Roles
+
+| Rol | Acceso |
+|---|---|
+| `DUENO` | Acceso total: administración y escritura sobre todas las entidades |
+| `ENCARGADO` | Acceso administrativo de lectura/operación, sin operaciones críticas de alta/baja de empresa |
+| `EMPLEADO` | Panel propio: sus propinas, mesas y notificaciones |
+
+---
+
 ## Planificación
 
-| Sprint | Período | Objetivo |
-|---|---|---|
-| Sprint 0 | 14/05 – 18/05 | Entorno, repositorio, BD y estructura inicial |
-| Sprint 1 | 19/05 – 01/06 | ABM empresa, sucursales, empleados, mesas y grupos de propina |
-| Sprint 2 | 02/06 – 15/06 | Login, roles y estructura base frontend/backend |
-| Sprint 3 | 16/06 – 29/06 | QR, pantalla pública, órdenes de propina e integración Mercado Pago |
-| Sprint 4 | 30/06 – 13/07 | Conciliación, distribución grupal, dashboards y reportes |
-| Sprint 5 | 14/07 – 20/07 | Comunicaciones internas, agentes IA, testing y demo final |
+| Sprint | Período | Objetivo | Estado |
+|---|---|---|---|
+| Sprint 0 | 14/05 – 18/05 | Entorno, repositorio, BD y estructura inicial | ✅ Completado |
+| Sprint 1 | 19/05 – 01/06 | Login, roles y estructura base frontend/backend | ✅ Completado |
+| Sprint 2 | 02/06 – 15/06 | ABM empresa, sucursales, empleados, mesas y grupos de propina | 🚧 En curso |
+| Sprint 3 | 16/06 – 29/06 | QR, pantalla pública, órdenes de propina e integración Mercado Pago | ⏳ Pendiente |
+| Sprint 4 | 30/06 – 13/07 | Conciliación, distribución grupal, dashboards y reportes | ⏳ Pendiente |
+| Sprint 5 | 14/07 – 20/07 | Comunicaciones internas, agentes IA, testing y demo final | ⏳ Pendiente |
 
 ---
 
@@ -590,8 +659,24 @@ erDiagram
 
 ```
 TipQR/
-├── Back/         # Java Spring Boot — API REST
-└── Front/        # Angular 21 — Interfaz web
+├── Back/                       # Java Spring Boot — API REST
+│   └── src/main/java/tipqr/back/
+│       ├── config/             # Seguridad, OpenAPI, datos iniciales
+│       ├── controller/         # Endpoints REST + manejo global de errores
+│       ├── dto/                # Objetos de entrada/salida
+│       ├── entity/             # 16 entidades JPA + enums
+│       ├── exception/          # Excepciones de negocio (404, 409)
+│       ├── repository/         # Spring Data JPA
+│       ├── security/           # JWT, filtros, entry points
+│       └── service/            # Lógica de negocio
+│
+├── Front/                      # Angular 21 — Interfaz web
+│   └── src/app/
+│       ├── core/               # Servicios, guards, interceptores, modelos
+│       ├── features/           # Login, dashboards, ABM empresa
+│       └── shared/             # Layout y componentes reutilizables
+│
+└── docker-compose.yml          # PostgreSQL + pgAdmin
 ```
 
 ---
@@ -635,6 +720,12 @@ cp .env.example .env
 
 > Las credenciales se configuran con variables de entorno en el archivo `.env` (excluido del repositorio). Ver `.env.example` como referencia.
 
+Al iniciar por primera vez se crea automáticamente un usuario administrador de prueba:
+
+| Email | Password | Rol |
+|---|---|---|
+| `admin@tipqr.com` | `tipqr2026` | `DUENO` |
+
 ### 3. Frontend
 
 ```bash
@@ -644,6 +735,15 @@ npm start
 ```
 
 La app corre en `http://localhost:4200`.
+
+### Tests del backend
+
+```bash
+cd Back
+./mvnw test
+```
+
+Ejecuta los 95 tests unitarios (JUnit 5 + Mockito) sobre una base H2 en memoria.
 
 ### Bajar los servicios
 

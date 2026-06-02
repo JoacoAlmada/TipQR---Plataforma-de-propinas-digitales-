@@ -25,6 +25,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/empleado/empleado-dashboard.component').then(m => m.EmpleadoDashboardComponent)
       },
+      {
+        path: 'empresas',
+        loadComponent: () =>
+          import('./features/empresa/empresa-list.component').then(m => m.EmpresaListComponent)
+      },
+      {
+        path: 'empresas/nueva',
+        loadComponent: () =>
+          import('./features/empresa/empresa-form.component').then(m => m.EmpresaFormComponent)
+      },
+      {
+        path: 'empresas/:id',
+        loadComponent: () =>
+          import('./features/empresa/empresa-form.component').then(m => m.EmpresaFormComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

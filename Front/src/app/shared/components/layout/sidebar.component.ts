@@ -13,6 +13,8 @@ export class SidebarComponent {
   private readonly auth = inject(AuthService);
   usuario = this.auth.getUsuario();
 
+  readonly esAdmin = this.usuario?.rol === 'DUENO' || this.usuario?.rol === 'ENCARGADO';
+
   logout(): void {
     this.auth.logout();
   }
