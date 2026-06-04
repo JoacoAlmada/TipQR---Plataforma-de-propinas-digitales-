@@ -85,7 +85,7 @@ export class EmpresaFormComponent implements OnInit {
       : this.empresaService.crear(request);
 
     peticion.subscribe({
-      next: () => this.router.navigate(['/empresas']),
+      next: () => this.router.navigate(['/app/empresas']),
       error: (err) => {
         this.loading.set(false);
         this.errorMsg.set(err?.error?.error ?? 'No se pudo guardar la empresa');

@@ -4,13 +4,19 @@ import { redirectIfLoggedGuard } from './core/guards/redirect-if-logged.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then(m => m.LandingComponent)
+  },
+  {
     path: 'login',
     canActivate: [redirectIfLoggedGuard],
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
-    path: '',
+    path: 'app',
     loadComponent: () =>
       import('./shared/components/layout/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [authGuard],
@@ -21,7 +27,7 @@ export const routes: Routes = [
           import('./features/admin/dashboard.component').then(m => m.DashboardComponent)
       },
       {
-        path: 'empleado/dashboard',
+        path: 'empleado',
         loadComponent: () =>
           import('./features/empleado/empleado-dashboard.component').then(m => m.EmpleadoDashboardComponent)
       },

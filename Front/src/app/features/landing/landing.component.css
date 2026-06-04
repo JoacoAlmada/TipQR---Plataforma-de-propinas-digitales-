@@ -1,0 +1,37 @@
+:host { display: block; }
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+.float-slow {
+  animation: float 7s ease-in-out infinite;
+  animation-delay: -2.5s;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+.fade-up {
+  animation: fade-up 0.7s ease both;
+}
+.fade-up-1 { animation: fade-up 0.7s ease both; animation-delay: 0.08s; }
+.fade-up-2 { animation: fade-up 0.7s ease both; animation-delay: 0.16s; }
+.fade-up-3 { animation: fade-up 0.7s ease both; animation-delay: 0.24s; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Mini-QR decorativo */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.qr-grid span {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: #040b15;
+}
+.qr-grid span.off { background: transparent; }

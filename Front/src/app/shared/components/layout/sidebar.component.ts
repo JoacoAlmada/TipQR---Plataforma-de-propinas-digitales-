@@ -14,6 +14,7 @@ export class SidebarComponent {
   usuario = this.auth.getUsuario();
 
   readonly esAdmin = this.usuario?.rol === 'DUENO' || this.usuario?.rol === 'ENCARGADO';
+  readonly inicio = this.usuario?.rol === 'EMPLEADO' ? '/app/empleado' : '/app/dashboard';
 
   logout(): void {
     this.auth.logout();

@@ -1,15 +1,13 @@
-<div class="p-8">
+<div>
 
   <!-- Encabezado -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-800">Empresas</h1>
-      <p class="text-sm text-gray-500 mt-1">Gestión de los comercios del sistema</p>
+      <h1 class="text-3xl font-bold text-ink tracking-tight">Empresas</h1>
+      <p class="mt-1 text-sm text-muted">Gestión de los comercios del sistema</p>
     </div>
     @if (esDueno) {
-      <a routerLink="/empresas/nueva"
-         class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700
-                text-white text-sm font-medium rounded-lg transition-colors">
+      <a routerLink="/app/empresas/nueva" class="btn btn-primary">
         + Nueva empresa
       </a>
     }
@@ -17,23 +15,21 @@
 
   <!-- Error -->
   @if (errorMsg()) {
-    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-      <p class="text-red-600 text-sm">{{ errorMsg() }}</p>
-    </div>
+    <div class="mb-4 alert-error">{{ errorMsg() }}</div>
   }
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="text-center py-12 text-gray-400 text-sm">Cargando empresas...</div>
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando empresas...</div>
   } @else if (empresas().length === 0) {
-    <div class="text-center py-12 bg-white rounded-xl border border-gray-200">
-      <p class="text-gray-500 text-sm">No hay empresas registradas todavía.</p>
+    <div class="text-center py-12 card">
+      <p class="text-muted text-sm">No hay empresas registradas todavía.</p>
     </div>
   } @else {
     <!-- Tabla -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="card overflow-hidden">
       <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-600 text-left">
+        <thead class="bg-surface-soft text-muted text-left">
           <tr>
             <th class="px-4 py-3 font-medium">Nombre</th>
             <th class="px-4 py-3 font-medium">Rubro</th>
@@ -43,31 +39,29 @@
             <th class="px-4 py-3 font-medium text-right">Acciones</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-hairline">
           @for (empresa of empresas(); track empresa.id) {
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-medium text-gray-800">{{ empresa.nombre }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ empresa.rubro || '—' }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ empresa.cuit || '—' }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ empresa.emailContacto || '—' }}</td>
+            <tr class="hover:bg-canvas transition-colors">
+              <td class="px-4 py-3 font-medium text-ink">{{ empresa.nombre }}</td>
+              <td class="px-4 py-3 text-body">{{ empresa.rubro || '—' }}</td>
+              <td class="px-4 py-3 text-body">{{ empresa.cuit || '—' }}</td>
+              <td class="px-4 py-3 text-body">{{ empresa.emailContacto || '—' }}</td>
               <td class="px-4 py-3">
                 @if (empresa.estado) {
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs
-                               bg-green-100 text-green-700">Activa</span>
+                  <span class="badge badge-success">Activa</span>
                 } @else {
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs
-                               bg-gray-100 text-gray-500">Inactiva</span>
+                  <span class="badge badge-muted">Inactiva</span>
                 }
               </td>
               <td class="px-4 py-3">
-                <div class="flex items-center justify-end gap-2">
-                  <a [routerLink]="['/empresas', empresa.id]"
-                     class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">
+                <div class="flex items-center justify-end gap-3">
+                  <a [routerLink]="['/app/empresas', empresa.id]"
+                     class="text-primary hover:text-primary-active text-xs font-semibold">
                     Editar
                   </a>
                   @if (esDueno) {
                     <button (click)="toggleEstado(empresa)"
-                      class="text-xs font-medium px-2 py-1 rounded transition-colors"
+                      class="text-xs font-semibold px-2 py-1 rounded-lg transition-colors"
                       [class.text-amber-700]="empresa.estado"
                       [class.hover:bg-amber-50]="empresa.estado"
                       [class.text-green-700]="!empresa.estado"
