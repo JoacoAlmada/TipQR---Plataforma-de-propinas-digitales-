@@ -16,6 +16,12 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'registro',
+    canActivate: [redirectIfLoggedGuard],
+    loadComponent: () =>
+      import('./features/auth/registro/registro.component').then(m => m.RegistroComponent)
+  },
+  {
     path: 'app',
     loadComponent: () =>
       import('./shared/components/layout/main-layout.component').then(m => m.MainLayoutComponent),
@@ -32,19 +38,9 @@ export const routes: Routes = [
           import('./features/empleado/empleado-dashboard.component').then(m => m.EmpleadoDashboardComponent)
       },
       {
-        path: 'empresas',
+        path: 'empresa',
         loadComponent: () =>
-          import('./features/empresa/empresa-list.component').then(m => m.EmpresaListComponent)
-      },
-      {
-        path: 'empresas/nueva',
-        loadComponent: () =>
-          import('./features/empresa/empresa-form.component').then(m => m.EmpresaFormComponent)
-      },
-      {
-        path: 'empresas/:id',
-        loadComponent: () =>
-          import('./features/empresa/empresa-form.component').then(m => m.EmpresaFormComponent)
+          import('./features/empresa/mi-empresa.component').then(m => m.MiEmpresaComponent)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

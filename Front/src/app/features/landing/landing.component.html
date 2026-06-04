@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-white text-body">
+<div class="min-h-screen bg-canvas text-body">
 
   <!-- Navbar -->
   <header class="sticky top-0 z-20 bg-sidebar/90 backdrop-blur border-b border-white/10">
@@ -15,7 +15,10 @@
       @if (logueado) {
         <a [routerLink]="destinoPanel" class="btn btn-primary btn-sm">Ir al panel</a>
       } @else {
-        <a routerLink="/login" class="btn btn-primary btn-sm">Iniciar sesión</a>
+        <div class="flex items-center gap-4">
+          <a routerLink="/login" class="text-sm text-white/80 hover:text-white transition-colors">Iniciar sesión</a>
+          <a routerLink="/registro" class="btn btn-primary btn-sm">Crear cuenta</a>
+        </div>
       }
     </div>
   </header>
@@ -45,13 +48,15 @@
           Gestión completa para bares, restaurantes, cafeterías y hoteles.
         </p>
         <div class="mt-9 flex flex-wrap items-center gap-3">
-          <a [routerLink]="logueado ? destinoPanel : '/login'" class="btn btn-primary">
-            {{ logueado ? 'Ir al panel' : 'Ingresar al sistema' }}
-          </a>
-          <a href="#como-funciona"
-             class="btn btn-secondary bg-white/10 text-white border-white/15 hover:bg-white/15">
-            Cómo funciona
-          </a>
+          @if (logueado) {
+            <a [routerLink]="destinoPanel" class="btn btn-primary">Ir al panel</a>
+          } @else {
+            <a routerLink="/registro" class="btn btn-primary">Empezar ahora</a>
+            <a routerLink="/login"
+               class="btn btn-secondary bg-white/10 text-white border-white/15 hover:bg-white/15">
+              Ya tengo cuenta
+            </a>
+          }
         </div>
         <!-- trust row -->
         <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/60">
@@ -65,7 +70,7 @@
       <div class="relative h-[420px] hidden lg:block">
 
         <!-- Tarjeta principal: propina recibida -->
-        <div class="float absolute top-6 left-6 right-10 rounded-2xl bg-white text-ink p-6 shadow-2xl">
+        <div class="float absolute top-6 left-6 right-10 rounded-2xl bg-surface-card text-ink p-6 shadow-2xl">
           <div class="flex items-center justify-between">
             <span class="badge badge-accent">Propina recibida</span>
             <span class="text-muted-soft">•••</span>
@@ -83,7 +88,7 @@
         </div>
 
         <!-- Tarjeta secundaria: QR -->
-        <div class="float-slow absolute bottom-0 right-0 rounded-2xl bg-white p-5 shadow-2xl">
+        <div class="float-slow absolute bottom-0 right-0 rounded-2xl bg-surface-card p-5 shadow-2xl">
           <div class="qr-grid w-28">
             <span></span><span class="off"></span><span></span><span></span><span></span><span class="off"></span><span></span>
             <span></span><span class="off"></span><span class="off"></span><span class="off"></span><span></span><span class="off"></span><span></span>
@@ -142,7 +147,7 @@
   </section>
 
   <!-- Cómo funciona -->
-  <section id="como-funciona" class="bg-canvas border-y border-hairline">
+  <section id="como-funciona" class="bg-surface-soft border-y border-hairline">
     <div class="max-w-6xl mx-auto px-6 py-24">
       <div class="text-center">
         <span class="badge badge-accent">Simple</span>
@@ -191,7 +196,7 @@
       <!-- Mock del panel -->
       <div class="relative">
         <div class="pointer-events-none absolute -inset-6 bg-gradient-to-tr from-primary/15 to-accent/15 blur-2xl rounded-3xl"></div>
-        <div class="relative rounded-2xl border border-hairline bg-white shadow-2xl overflow-hidden">
+        <div class="relative rounded-2xl border border-hairline bg-surface-card shadow-2xl overflow-hidden">
           <!-- barra de ventana -->
           <div class="h-9 bg-surface-soft border-b border-hairline flex items-center gap-1.5 px-4">
             <span class="w-2.5 h-2.5 rounded-full bg-[#e0b3b2]"></span>
@@ -242,10 +247,18 @@
       <div class="pointer-events-none absolute -bottom-24 right-1/4 w-80 h-80 rounded-full bg-accent/25 blur-[120px]"></div>
       <div class="relative">
         <h2 class="text-3xl md:text-4xl font-bold tracking-tight">¿Listo para empezar?</h2>
-        <p class="mt-3 text-white/70">Ingresá al sistema para administrar las propinas de tu comercio.</p>
-        <a [routerLink]="logueado ? destinoPanel : '/login'" class="btn btn-primary mt-8">
-          {{ logueado ? 'Ir al panel' : 'Iniciar sesión' }}
-        </a>
+        <p class="mt-3 text-white/70">Registrá tu comercio y empezá a recibir propinas digitales hoy.</p>
+        @if (logueado) {
+          <a [routerLink]="destinoPanel" class="btn btn-primary mt-8">Ir al panel</a>
+        } @else {
+          <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a routerLink="/registro" class="btn btn-primary">Crear cuenta gratis</a>
+            <a routerLink="/login"
+               class="btn btn-secondary bg-white/10 text-white border-white/15 hover:bg-white/15">
+              Iniciar sesión
+            </a>
+          </div>
+        }
       </div>
     </div>
   </section>

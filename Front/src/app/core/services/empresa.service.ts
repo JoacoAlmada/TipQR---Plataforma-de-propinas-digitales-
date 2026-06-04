@@ -8,16 +8,9 @@ export class EmpresaService {
   private readonly http = inject(HttpClient);
   private readonly API = 'http://localhost:8080/api/empresas';
 
-  listar(): Observable<Empresa[]> {
-    return this.http.get<Empresa[]>(this.API);
-  }
-
-  obtener(id: number): Observable<Empresa> {
-    return this.http.get<Empresa>(`${this.API}/${id}`);
-  }
-
-  crear(request: EmpresaRequest): Observable<Empresa> {
-    return this.http.post<Empresa>(this.API, request);
+  /** Empresa del usuario autenticado. */
+  miEmpresa(): Observable<Empresa> {
+    return this.http.get<Empresa>(`${this.API}/mia`);
   }
 
   actualizar(id: number, request: EmpresaRequest): Observable<Empresa> {

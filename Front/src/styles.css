@@ -25,10 +25,11 @@
   --color-muted: #6b6266;
   --color-muted-soft: #9c9296;
 
-  /* Superficies (cálidas) */
-  --color-hairline: #e9e2e2;
-  --color-canvas: #faf8f8;
-  --color-surface-soft: #f4efef;
+  /* Superficies (crema cálido, nada de blanco puro) */
+  --color-hairline: #e6dccf;
+  --color-canvas: #f3ece3;
+  --color-surface-card: #fdf9f4;
+  --color-surface-soft: #ece3d8;
 
   /* Semánticos */
   --color-success: #22c55e;
@@ -64,7 +65,7 @@
            disabled:bg-primary-disabled disabled:hover:bg-primary-disabled;
   }
   .btn-secondary {
-    @apply bg-white text-ink border border-hairline hover:border-muted-soft;
+    @apply bg-surface-card text-ink border border-hairline hover:border-muted-soft;
   }
   .btn-ghost {
     @apply text-primary hover:bg-primary/5;
@@ -81,7 +82,7 @@
 
   /* ── Tarjetas ──────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-2xl border border-hairline shadow-sm;
+    @apply bg-surface-card rounded-2xl border border-hairline shadow-sm;
   }
   .card-hover {
     @apply transition-all hover:border-primary/40 hover:shadow-md;
@@ -92,7 +93,7 @@
     @apply block text-[13px] font-medium text-body mb-1.5;
   }
   .input {
-    @apply w-full h-[42px] px-3.5 rounded-xl border border-hairline bg-white text-ink text-sm
+    @apply w-full h-[42px] px-3.5 rounded-xl border border-hairline bg-surface-card text-ink text-sm
            outline-none transition placeholder:text-muted-soft
            focus:border-primary focus:ring-4 focus:ring-primary/10;
   }

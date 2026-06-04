@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { LoginRequest, LoginResponse, UsuarioLogueado } from '../models/auth.model';
+import { LoginRequest, LoginResponse, RegistroRequest, UsuarioLogueado } from '../models/auth.model';
 import { StorageService } from './storage.service';
 
 @Injectable({ providedIn: 'root' })
@@ -17,17 +17,25 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API}/login`, request).pipe(
-      tap(response => {
-        this.storage.set(this.TOKEN_KEY, response.token);
-        const user: UsuarioLogueado = {
-          email: response.email,
-          rol: response.rol,
-          nombre: response.nombre,
-          apellido: response.apellido
-        };
-        this.storage.set(this.USER_KEY, JSON.stringify(user));
-      })
+      tap(response => this.guardarSesion(response))
     );
+  }
+
+  registrar(request: RegistroRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.API}/registro`, request).pipe(
+      tap(response => this.guardarSesion(response))
+    );
+  }
+
+  private guardarSesion(response: LoginResponse): void {
+    this.storage.set(this.TOKEN_KEY, response.token);
+    const user: UsuarioLogueado = {
+      email: response.email,
+      rol: response.rol,
+      nombre: response.nombre,
+      apellido: response.apellido
+    };
+    this.storage.set(this.USER_KEY, JSON.stringify(user));
   }
 
   logout(): void {

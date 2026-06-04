@@ -6,9 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import tipqr.back.dto.EmpresaRequest;
 import tipqr.back.dto.EmpresaResponse;
 import tipqr.back.entity.Empresa;
+import tipqr.back.entity.Usuario;
 import tipqr.back.exception.DuplicateResourceException;
 import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.EmpresaRepository;
+import tipqr.back.repository.UsuarioRepository;
 
 import java.util.List;
 
@@ -17,39 +19,30 @@ import java.util.List;
 public class EmpresaService {
 
     private final EmpresaRepository empresaRepository;
+    private final UsuarioRepository usuarioRepository;
 
+    /**
+     * Empresa del usuario autenticado. Listado acotado (un solo comercio por usuario).
+     */
     @Transactional(readOnly = true)
-    public List<EmpresaResponse> listar() {
-        return empresaRepository.findAll().stream()
-                .map(EmpresaResponse::fromEntity)
-                .toList();
+    public List<EmpresaResponse> listar(String emailUsuario) {
+        return List.of(EmpresaResponse.fromEntity(empresaDelUsuario(emailUsuario)));
     }
 
     @Transactional(readOnly = true)
-    public EmpresaResponse obtenerPorId(Long id) {
-        return EmpresaResponse.fromEntity(buscarEntidad(id));
+    public EmpresaResponse miEmpresa(String emailUsuario) {
+        return EmpresaResponse.fromEntity(empresaDelUsuario(emailUsuario));
+    }
+
+    @Transactional(readOnly = true)
+    public EmpresaResponse obtenerPorId(Long id, String emailUsuario) {
+        return EmpresaResponse.fromEntity(empresaPropia(id, emailUsuario));
     }
 
     @Transactional
-    public EmpresaResponse crear(EmpresaRequest request) {
-        validarCuitUnico(request.getCuit(), null);
-
-        Empresa empresa = Empresa.builder()
-                .nombre(request.getNombre())
-                .rubro(request.getRubro())
-                .cuit(normalizar(request.getCuit()))
-                .emailContacto(request.getEmailContacto())
-                .telefono(request.getTelefono())
-                .estado(true)
-                .build();
-
-        return EmpresaResponse.fromEntity(empresaRepository.save(empresa));
-    }
-
-    @Transactional
-    public EmpresaResponse actualizar(Long id, EmpresaRequest request) {
-        Empresa empresa = buscarEntidad(id);
-        validarCuitUnico(request.getCuit(), id);
+    public EmpresaResponse actualizar(Long id, EmpresaRequest request, String emailUsuario) {
+        Empresa empresa = empresaPropia(id, emailUsuario);
+        validarCuitUnico(request.getCuit(), empresa.getId());
 
         empresa.setNombre(request.getNombre());
         empresa.setRubro(request.getRubro());
@@ -61,15 +54,35 @@ public class EmpresaService {
     }
 
     @Transactional
-    public EmpresaResponse cambiarEstado(Long id, boolean estado) {
-        Empresa empresa = buscarEntidad(id);
+    public EmpresaResponse cambiarEstado(Long id, boolean estado, String emailUsuario) {
+        Empresa empresa = empresaPropia(id, emailUsuario);
         empresa.setEstado(estado);
         return EmpresaResponse.fromEntity(empresaRepository.save(empresa));
     }
 
-    private Empresa buscarEntidad(Long id) {
-        return empresaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa", id));
+    /**
+     * Empresa asociada al usuario autenticado (resuelta desde el contexto, no del request).
+     */
+    private Empresa empresaDelUsuario(String emailUsuario) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        Empresa empresa = usuario.getEmpresa();
+        if (empresa == null) {
+            throw new ResourceNotFoundException("El usuario no tiene una empresa asociada");
+        }
+        return empresa;
+    }
+
+    /**
+     * Valida que la empresa solicitada por id sea la del usuario. Si no, 404 (no se
+     * revela la existencia de empresas ajenas).
+     */
+    private Empresa empresaPropia(Long id, String emailUsuario) {
+        Empresa empresa = empresaDelUsuario(emailUsuario);
+        if (!empresa.getId().equals(id)) {
+            throw new ResourceNotFoundException("Empresa", id);
+        }
+        return empresa;
     }
 
     private void validarCuitUnico(String cuit, Long idActual) {
@@ -77,10 +90,7 @@ public class EmpresaService {
         if (cuitNormalizado == null) {
             return;
         }
-        boolean duplicado = (idActual == null)
-                ? empresaRepository.existsByCuit(cuitNormalizado)
-                : empresaRepository.existsByCuitAndIdNot(cuitNormalizado, idActual);
-        if (duplicado) {
+        if (empresaRepository.existsByCuitAndIdNot(cuitNormalizado, idActual)) {
             throw new DuplicateResourceException("Ya existe una empresa con el CUIT " + cuitNormalizado);
         }
     }

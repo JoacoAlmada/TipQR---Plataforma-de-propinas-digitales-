@@ -1,0 +1,100 @@
+<div class="max-w-2xl">
+
+  <!-- Encabezado -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-ink tracking-tight">Mi empresa</h1>
+    <p class="mt-1 text-sm text-muted">Los datos de tu comercio en el sistema</p>
+  </div>
+
+  @if (cargando()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando...</div>
+  } @else if (!empresa()) {
+    <div class="alert-error">{{ errorMsg() || 'No se encontró tu empresa.' }}</div>
+  } @else {
+
+    <!-- Estado -->
+    <div class="card p-5 mb-5 flex items-center justify-between">
+      <div>
+        <p class="text-sm text-muted">Estado del comercio</p>
+        <div class="mt-1">
+          @if (empresa()!.estado) {
+            <span class="badge badge-success">Activo</span>
+          } @else {
+            <span class="badge badge-muted">Inactivo</span>
+          }
+        </div>
+      </div>
+      @if (esDueno) {
+        <button (click)="toggleEstado()" class="btn btn-secondary btn-sm">
+          {{ empresa()!.estado ? 'Desactivar' : 'Activar' }}
+        </button>
+      }
+    </div>
+
+    <!-- Mensajes -->
+    @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+    @if (okMsg()) {
+      <div class="mb-4 px-4 py-3 rounded-xl bg-success-soft border border-green-200 text-green-700 text-sm">
+        {{ okMsg() }}
+      </div>
+    }
+
+    <!-- Formulario -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 space-y-5">
+
+      <div>
+        <label class="label">Nombre <span class="text-error">*</span></label>
+        <input type="text" formControlName="nombre" class="input"
+          [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
+          placeholder="Nombre del comercio" />
+        @if (f['nombre'].invalid && f['nombre'].touched) {
+          <p class="field-error">El nombre es obligatorio (máx. 120 caracteres)</p>
+        }
+      </div>
+
+      <div>
+        <label class="label">Rubro</label>
+        <input type="text" formControlName="rubro" class="input"
+          [class.input-error]="f['rubro'].invalid && f['rubro'].touched"
+          placeholder="Ej: Gastronomía, Hotelería" />
+      </div>
+
+      <div>
+        <label class="label">CUIT</label>
+        <input type="text" formControlName="cuit" class="input"
+          [class.input-error]="f['cuit'].invalid && f['cuit'].touched"
+          placeholder="30-12345678-9" />
+        @if (f['cuit'].invalid && f['cuit'].touched) {
+          <p class="field-error">Formato de CUIT inválido (XX-XXXXXXXX-X)</p>
+        }
+      </div>
+
+      <div>
+        <label class="label">Email de contacto</label>
+        <input type="email" formControlName="emailContacto" class="input"
+          [class.input-error]="f['emailContacto'].invalid && f['emailContacto'].touched"
+          placeholder="contacto@empresa.com" />
+        @if (f['emailContacto'].invalid && f['emailContacto'].touched) {
+          <p class="field-error">Ingresá un email válido</p>
+        }
+      </div>
+
+      <div>
+        <label class="label">Teléfono</label>
+        <input type="text" formControlName="telefono" class="input"
+          [class.input-error]="f['telefono'].invalid && f['telefono'].touched"
+          placeholder="+54 351 000 0000" />
+      </div>
+
+      @if (esDueno) {
+        <div class="pt-2">
+          <button type="submit" [disabled]="guardando()" class="btn btn-primary">
+            @if (guardando()) { Guardando... } @else { Guardar cambios }
+          </button>
+        </div>
+      } @else {
+        <p class="text-sm text-muted">Solo el dueño puede editar los datos de la empresa.</p>
+      }
+    </form>
+  }
+</div>
