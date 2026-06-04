@@ -1,0 +1,44 @@
+<div>
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-ink tracking-tight">Solicitudes de alta</h1>
+    <p class="mt-1 text-sm text-muted">Comercios pendientes de validación</p>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando solicitudes...</div>
+  } @else if (solicitudes().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-14 h-14 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-2xl">✓</div>
+      <p class="mt-4 text-muted text-sm">No hay solicitudes pendientes. ¡Todo al día!</p>
+    </div>
+  } @else {
+    <div class="card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-soft text-muted text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Solicitante</th>
+            <th class="px-4 py-3 font-medium">Comercio</th>
+            <th class="px-4 py-3 font-medium">Email</th>
+            <th class="px-4 py-3 font-medium">Fecha</th>
+            <th class="px-4 py-3 font-medium text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline">
+          @for (s of solicitudes(); track s.id) {
+            <tr class="hover:bg-canvas transition-colors">
+              <td class="px-4 py-3 font-medium text-ink">{{ s.nombre }} {{ s.apellido }}</td>
+              <td class="px-4 py-3 text-body">{{ s.empresaNombre || '—' }}</td>
+              <td class="px-4 py-3 text-body">{{ s.email }}</td>
+              <td class="px-4 py-3 text-muted">{{ s.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-4 py-3 text-right">
+                <a [routerLink]="['/superadmin/solicitudes', s.id]" class="btn btn-primary btn-sm">Revisar</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

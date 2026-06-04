@@ -1,0 +1,20 @@
+<div class="min-h-screen app-bg">
+  <!-- Top bar -->
+  <header class="h-16 bg-sidebar text-white">
+    <div class="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-white font-bold text-sm">Tip</span>
+        <span class="text-lg font-bold">TipQR</span>
+        <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/80">Superadmin</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-white/80 hidden sm:inline">{{ usuario?.nombre }} {{ usuario?.apellido }}</span>
+        <button (click)="logout()" class="text-sm text-white/70 hover:text-white transition-colors">Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <router-outlet />
+  </main>
+</div>

@@ -21,10 +21,18 @@ public class Empresa {
     @Column(nullable = false)
     private String nombre;
 
+    private String nombreFantasia;
+
     private String rubro;
 
     @Column(unique = true)
     private String cuit;
+
+    private String provincia;
+
+    private String calle;
+
+    private String numeracion;
 
     private String emailContacto;
 

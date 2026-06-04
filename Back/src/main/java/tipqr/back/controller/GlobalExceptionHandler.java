@@ -3,6 +3,7 @@ package tipqr.back.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDuplicate(DuplicateResourceException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest()
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabled(DisabledException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

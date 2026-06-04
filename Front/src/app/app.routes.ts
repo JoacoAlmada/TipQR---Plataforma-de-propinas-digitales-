@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { redirectIfLoggedGuard } from './core/guards/redirect-if-logged.guard';
+import { superadminGuard } from './core/guards/superadmin.guard';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,30 @@ export const routes: Routes = [
     canActivate: [redirectIfLoggedGuard],
     loadComponent: () =>
       import('./features/auth/registro/registro.component').then(m => m.RegistroComponent)
+  },
+  {
+    path: 'verificar-email',
+    loadComponent: () =>
+      import('./features/auth/verificar-email/verificar-email.component').then(m => m.VerificarEmailComponent)
+  },
+  {
+    path: 'superadmin',
+    loadComponent: () =>
+      import('./features/superadmin/superadmin-layout.component').then(m => m.SuperadminLayoutComponent),
+    canActivate: [superadminGuard],
+    children: [
+      {
+        path: 'solicitudes',
+        loadComponent: () =>
+          import('./features/superadmin/solicitudes-list.component').then(m => m.SolicitudesListComponent)
+      },
+      {
+        path: 'solicitudes/:id',
+        loadComponent: () =>
+          import('./features/superadmin/solicitud-detalle.component').then(m => m.SolicitudDetalleComponent)
+      },
+      { path: '', redirectTo: 'solicitudes', pathMatch: 'full' }
+    ]
   },
   {
     path: 'app',

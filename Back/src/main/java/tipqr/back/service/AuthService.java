@@ -2,6 +2,7 @@ package tipqr.back.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import tipqr.back.dto.LoginResponse;
 import tipqr.back.dto.RegistroRequest;
 import tipqr.back.entity.Empresa;
 import tipqr.back.entity.Usuario;
+import tipqr.back.entity.enums.EstadoCuenta;
 import tipqr.back.entity.enums.Rol;
 import tipqr.back.exception.DuplicateResourceException;
 import tipqr.back.repository.EmpresaRepository;
@@ -36,6 +38,11 @@ public class AuthService {
             throw new BadCredentialsException("Credenciales inválidas");
         }
 
+        if (usuario.getRol() != Rol.SUPERADMIN
+                && usuario.getEstadoCuenta() != EstadoCuenta.APROBADA) {
+            throw new DisabledException(mensajePorEstado(usuario.getEstadoCuenta()));
+        }
+
         UserDetails userDetails = usuarioService.loadUserByUsername(request.getEmail());
         String token = jwtUtil.generateToken(userDetails);
 
@@ -45,6 +52,17 @@ public class AuthService {
                 usuario.getRol().name(),
                 usuario.getNombre(),
                 usuario.getApellido());
+    }
+
+    private String mensajePorEstado(EstadoCuenta estado) {
+        return switch (estado) {
+            case PENDIENTE_VALIDACION ->
+                    "Tu cuenta está pendiente de validación. Te avisaremos por email (suele demorar de 1 a 4 horas).";
+            case RECHAZADA ->
+                    "Tu solicitud fue rechazada. Escribinos para más información.";
+            default ->
+                    "Tu registro no está completo. Terminá el alta para poder ingresar.";
+        };
     }
 
     /**
@@ -79,6 +97,8 @@ public class AuthService {
                 .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .rol(Rol.DUENO)
+                .estadoCuenta(EstadoCuenta.APROBADA)
+                .emailVerificado(true)
                 .empresa(empresa)
                 .estado(true)
                 .build());

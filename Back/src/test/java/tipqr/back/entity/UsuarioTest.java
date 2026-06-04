@@ -44,7 +44,8 @@ class UsuarioTest {
 
     @Test
     void todosLosRoles_sonValidos() {
-        assertEquals(3, Rol.values().length);
+        assertEquals(4, Rol.values().length);
+        assertNotNull(Rol.valueOf("SUPERADMIN"));
         assertNotNull(Rol.valueOf("DUENO"));
         assertNotNull(Rol.valueOf("ENCARGADO"));
         assertNotNull(Rol.valueOf("EMPLEADO"));

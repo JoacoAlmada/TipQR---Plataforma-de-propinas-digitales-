@@ -1,0 +1,135 @@
+<div>
+  <!-- Breadcrumb -->
+  <a routerLink="/superadmin/solicitudes" class="text-sm text-primary hover:text-primary-active">← Volver a solicitudes</a>
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando...</div>
+  } @else if (!solicitud()) {
+    <div class="alert-error mt-4">{{ errorMsg() || 'No se encontró la solicitud.' }}</div>
+  } @else {
+    <!-- Encabezado + acciones -->
+    <div class="flex flex-wrap items-start justify-between gap-4 mt-2 mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-ink tracking-tight">{{ solicitud()!.empresaNombre }}</h1>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="badge badge-warning">{{ solicitud()!.estadoCuenta }}</span>
+          <span class="text-sm text-muted">Solicitado el {{ solicitud()!.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="mostrarRechazo.set(true)" [disabled]="procesando()" class="btn btn-danger">Rechazar</button>
+        <button (click)="mostrarAprobacion.set(true)" [disabled]="procesando()"
+                class="btn bg-success text-white hover:bg-green-600 disabled:opacity-60">Aprobar</button>
+      </div>
+    </div>
+
+    @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+    <!-- Datos generales -->
+    <div class="card p-6 mb-6">
+      <h2 class="text-sm font-semibold text-ink mb-4">👤 Datos del solicitante</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-5 gap-x-4">
+        <div><p class="text-xs text-muted">Nombre y apellido</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.nombre }} {{ solicitud()!.apellido }}</p></div>
+        <div><p class="text-xs text-muted">Email</p><p class="text-sm text-ink font-medium mt-0.5 break-all">{{ solicitud()!.email }}</p></div>
+        <div><p class="text-xs text-muted">Teléfono</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.telefono || '—' }}</p></div>
+        <div><p class="text-xs text-muted">CUIT</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.cuit || '—' }}</p></div>
+        <div><p class="text-xs text-muted">DNI</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.dni || '—' }}</p></div>
+      </div>
+
+      <hr class="border-hairline my-5" />
+
+      <h2 class="text-sm font-semibold text-ink mb-4">🏢 Datos del comercio</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-5 gap-x-4">
+        <div><p class="text-xs text-muted">Razón social / Nombre</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.empresaNombre }}</p></div>
+        <div><p class="text-xs text-muted">Nombre de fantasía</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.nombreFantasia || '—' }}</p></div>
+        <div><p class="text-xs text-muted">Rubro</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.rubro || '—' }}</p></div>
+        <div><p class="text-xs text-muted">CUIT del comercio</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.empresaCuit || '—' }}</p></div>
+        <div><p class="text-xs text-muted">Provincia</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.provincia || '—' }}</p></div>
+        <div><p class="text-xs text-muted">Calle</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.calle || '—' }}</p></div>
+        <div><p class="text-xs text-muted">Numeración</p><p class="text-sm text-ink font-medium mt-0.5">{{ solicitud()!.numeracion || '—' }}</p></div>
+      </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="card p-6">
+      <h2 class="text-sm font-semibold text-ink mb-4">📎 Archivos de la solicitud</h2>
+      <div class="space-y-3">
+        @for (doc of solicitud()!.documentos; track doc.id) {
+          <div class="flex items-center justify-between gap-4 p-4 rounded-xl border border-hairline">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-ink">{{ etiqueta(doc.tipo) }}</p>
+              <p class="text-xs text-muted truncate">{{ doc.nombreArchivo }}</p>
+            </div>
+            <button (click)="verDocumento(doc)" [disabled]="cargandoDoc() === doc.id"
+                    class="btn btn-secondary btn-sm">
+              @if (cargandoDoc() === doc.id) { Abriendo... } @else { 👁 Ver }
+            </button>
+          </div>
+        } @empty {
+          <p class="text-sm text-muted-soft">No hay documentos adjuntos.</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal visor de documento ── -->
+  @if (preview(); as p) {
+    <div class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" (click)="cerrarPreview()">
+      <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col" (click)="$event.stopPropagation()">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-hairline">
+          <p class="text-sm font-medium text-ink truncate">{{ p.nombre }}</p>
+          <button (click)="cerrarPreview()" class="text-muted hover:text-ink text-xl leading-none">✕</button>
+        </div>
+        <div class="p-4 overflow-auto bg-surface-soft flex items-center justify-center">
+          @if (p.esImagen) {
+            <img [src]="p.safe" [alt]="p.nombre" class="max-w-full max-h-[75vh] rounded-lg" />
+          } @else {
+            <iframe [src]="p.safe" class="w-full h-[75vh] rounded-lg bg-white" title="documento"></iframe>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal de aprobación ── -->
+  @if (mostrarAprobacion()) {
+    <div class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" (click)="mostrarAprobacion.set(false)">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+        <div class="flex items-start gap-3">
+          <div class="shrink-0 w-10 h-10 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-xl">✓</div>
+          <div>
+            <h3 class="text-lg font-semibold text-ink">Aprobar solicitud</h3>
+            <p class="text-sm text-muted mt-1">
+              El dueño <strong>{{ solicitud()?.nombre }} {{ solicitud()?.apellido }}</strong> podrá ingresar
+              al sistema y se le enviará un email de confirmación. ¿Confirmás?
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 mt-5">
+          <button (click)="mostrarAprobacion.set(false)" class="btn btn-ghost">Cancelar</button>
+          <button (click)="confirmarAprobacion()" [disabled]="procesando()"
+                  class="btn bg-success text-white hover:bg-green-600 disabled:opacity-60">
+            @if (procesando()) { Aprobando... } @else { Sí, aprobar }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal de rechazo ── -->
+  @if (mostrarRechazo()) {
+    <div class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" (click)="mostrarRechazo.set(false)">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold text-ink">Rechazar solicitud</h3>
+        <p class="text-sm text-muted mt-1">Contale al dueño por qué (se incluye en el email).</p>
+        <textarea rows="3" class="input mt-4 h-auto py-2.5"
+                  [value]="motivoRechazo()" (input)="motivoRechazo.set($any($event.target).value)"
+                  placeholder="Ej: La constancia de AFIP no es legible."></textarea>
+        <div class="flex items-center justify-end gap-2 mt-4">
+          <button (click)="mostrarRechazo.set(false)" class="btn btn-ghost">Cancelar</button>
+          <button (click)="confirmarRechazo()" [disabled]="procesando()" class="btn btn-danger">Confirmar rechazo</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

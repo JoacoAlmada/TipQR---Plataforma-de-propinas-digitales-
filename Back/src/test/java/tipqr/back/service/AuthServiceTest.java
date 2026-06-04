@@ -6,12 +6,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tipqr.back.dto.LoginRequest;
 import tipqr.back.dto.LoginResponse;
 import tipqr.back.entity.Usuario;
+import tipqr.back.entity.enums.EstadoCuenta;
 import tipqr.back.entity.enums.Rol;
 import tipqr.back.repository.UsuarioRepository;
 import tipqr.back.security.JwtUtil;
@@ -48,6 +50,7 @@ class AuthServiceTest {
                 .nombre("Admin")
                 .apellido("TipQR")
                 .rol(Rol.DUENO)
+                .estadoCuenta(EstadoCuenta.APROBADA)
                 .estado(true)
                 .build();
 
@@ -88,6 +91,24 @@ class AuthServiceTest {
 
         assertThrows(BadCredentialsException.class,
                 () -> authService.login(buildRequest("inactivo@tipqr.com", "pass")));
+    }
+
+    @Test
+    void login_cuentaPendienteValidacion_lanzaDisabledException() {
+        Usuario usuario = Usuario.builder()
+                .email("pendiente@tipqr.com")
+                .password("hashed")
+                .rol(Rol.DUENO)
+                .estadoCuenta(EstadoCuenta.PENDIENTE_VALIDACION)
+                .estado(true)
+                .build();
+
+        when(usuarioRepository.findByEmail("pendiente@tipqr.com")).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("pass", "hashed")).thenReturn(true);
+
+        assertThrows(DisabledException.class,
+                () -> authService.login(buildRequest("pendiente@tipqr.com", "pass")));
+        verify(jwtUtil, never()).generateToken(any());
     }
 
     @Test

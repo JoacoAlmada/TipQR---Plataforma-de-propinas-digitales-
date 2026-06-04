@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import tipqr.back.entity.Empresa;
 import tipqr.back.entity.Usuario;
+import tipqr.back.entity.enums.EstadoCuenta;
 import tipqr.back.entity.enums.Rol;
 import tipqr.back.repository.UsuarioRepository;
 
@@ -28,8 +29,23 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        // Superadmin (dueño del producto) — único, no se registra por la app.
+        if (!usuarioRepository.existsByEmail("superadmin@tipqr.com")) {
+            Usuario superadmin = Usuario.builder()
+                    .nombre("Joaquín")
+                    .apellido("Almada")
+                    .email("superadmin@tipqr.com")
+                    .password(passwordEncoder.encode("superadmin2026"))
+                    .rol(Rol.SUPERADMIN)
+                    .estadoCuenta(EstadoCuenta.APROBADA)
+                    .emailVerificado(true)
+                    .build();
+            usuarioRepository.save(superadmin);
+            log.info("Superadmin creado: superadmin@tipqr.com / superadmin2026");
+        }
+
         if (usuarioRepository.existsByEmail("admin@tipqr.com")) {
-            log.info("Usuario admin ya existe — omitiendo inicialización");
+            log.info("Usuario admin ya existe — omitiendo inicialización demo");
             return;
         }
 
@@ -47,6 +63,8 @@ public class DataInitializer implements CommandLineRunner {
                 .email("admin@tipqr.com")
                 .password(passwordEncoder.encode("tipqr2026"))
                 .rol(Rol.DUENO)
+                .estadoCuenta(EstadoCuenta.APROBADA)
+                .emailVerificado(true)
                 .empresa(empresa)
                 .build();
         usuarioRepository.save(admin);

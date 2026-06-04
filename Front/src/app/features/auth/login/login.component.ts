@@ -35,11 +35,18 @@ export class LoginComponent {
 
     this.auth.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
-        this.router.navigate(res.rol === 'EMPLEADO' ? ['/app/empleado'] : ['/app/dashboard']);
+        if (res.rol === 'SUPERADMIN') {
+          this.router.navigate(['/superadmin']);
+        } else {
+          this.router.navigate(res.rol === 'EMPLEADO' ? ['/app/empleado'] : ['/app/dashboard']);
+        }
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.errorMsg = 'Email o contraseña incorrectos';
+        // 403 = cuenta pendiente/rechazada → mostramos el mensaje del backend
+        this.errorMsg = err?.status === 403 && err?.error?.error
+          ? err.error.error
+          : 'Email o contraseña incorrectos';
       }
     });
   }
