@@ -54,6 +54,16 @@ public class RegistroService {
             throw new DuplicateResourceException("Ya existe una cuenta con el email " + email);
         }
 
+        String cuit = request.getCuit().trim();
+        if (usuarioRepository.existsByCuit(cuit)) {
+            throw new DuplicateResourceException("Ya existe una cuenta con el CUIT " + cuit);
+        }
+
+        String dni = request.getDni().trim();
+        if (usuarioRepository.existsByDni(dni)) {
+            throw new DuplicateResourceException("Ya existe una cuenta con el DNI " + dni);
+        }
+
         String token = UUID.randomUUID().toString();
 
         Usuario usuario = Usuario.builder()
@@ -62,8 +72,8 @@ public class RegistroService {
                 .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .telefono(request.getTelefono().trim())
-                .cuit(request.getCuit().trim())
-                .dni(request.getDni().trim())
+                .cuit(cuit)
+                .dni(dni)
                 .rol(Rol.DUENO)
                 .estadoCuenta(EstadoCuenta.CREADA)
                 .emailVerificado(false)

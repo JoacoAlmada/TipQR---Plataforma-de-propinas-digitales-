@@ -74,6 +74,23 @@ export class RegistroComponent implements AfterViewInit {
   get f1() { return this.form1.controls; }
   get f2() { return this.form2.controls; }
 
+  /** Deja solo dígitos en el control indicado (teléfono, DNI). */
+  soloNumeros(event: Event, ctrl: 'telefono' | 'dni'): void {
+    const input = event.target as HTMLInputElement;
+    const limpio = input.value.replace(/\D/g, '');
+    if (input.value !== limpio) input.value = limpio;
+    this.f1[ctrl].setValue(limpio, { emitEvent: false });
+  }
+
+  /** Deja solo dígitos y guiones (CUIT). */
+  soloCuit(event: Event, form: 'form1' | 'form2'): void {
+    const input = event.target as HTMLInputElement;
+    const limpio = input.value.replace(/[^\d-]/g, '');
+    if (input.value !== limpio) input.value = limpio;
+    const c = form === 'form1' ? this.form1.controls.cuit : this.form2.controls.cuit;
+    c.setValue(limpio, { emitEvent: false });
+  }
+
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     this.cargarRecaptcha().then(() => this.renderCaptcha());

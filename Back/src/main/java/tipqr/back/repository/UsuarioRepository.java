@@ -15,6 +15,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByCuit(String cuit);
+
+    boolean existsByDni(String dni);
+
     Optional<Usuario> findByEmailToken(String emailToken);
 
     List<Usuario> findByEstadoCuentaOrderByFechaCreacionDesc(EstadoCuenta estadoCuenta);
