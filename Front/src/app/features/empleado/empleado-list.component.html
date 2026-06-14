@@ -1,0 +1,100 @@
+<div>
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+    <div>
+      <span class="eyebrow">Gestión</span>
+      <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">Empleados</h1>
+      <p class="mt-1.5 text-sm text-muted">Personal que puede recibir propinas</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <select class="input w-48" (change)="onFiltro($any($event.target).value)">
+        <option value="">Todas las sucursales</option>
+        @for (s of sucursales(); track s.id) {
+          <option [value]="s.id">{{ s.nombre }}</option>
+        }
+      </select>
+      @if (esDueno) {
+        <a routerLink="/app/empleados/nuevo" class="btn btn-primary whitespace-nowrap">+ Nuevo empleado</a>
+      }
+    </div>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando empleados...</div>
+  } @else if (empleados().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">👤</div>
+      <p class="mt-4 text-muted text-sm">No hay empleados para mostrar.</p>
+      @if (esDueno) {
+        <a routerLink="/app/empleados/nuevo" class="btn btn-primary mt-5">Agregar empleado</a>
+      }
+    </div>
+  } @else {
+    <div class="card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-soft text-muted text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Nombre visible</th>
+            <th class="px-4 py-3 font-medium">Apellido</th>
+            <th class="px-4 py-3 font-medium">Email</th>
+            <th class="px-4 py-3 font-medium">Puesto</th>
+            <th class="px-4 py-3 font-medium">Sucursal</th>
+            <th class="px-4 py-3 font-medium">Estado</th>
+            <th class="px-4 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline">
+          @for (e of empleados(); track e.id) {
+            <tr class="hover:bg-canvas transition-colors">
+              <td class="px-4 py-3 font-medium text-ink">
+                <div class="flex items-center gap-2">
+                  {{ e.nombreVisible }}
+                  @if (e.esEncargado) { <span class="badge badge-accent">Encargado</span> }
+                </div>
+              </td>
+              <td class="px-4 py-3 text-body">{{ e.apellido }}</td>
+              <td class="px-4 py-3 text-body">{{ e.email }}</td>
+              <td class="px-4 py-3 text-body">{{ e.puesto || '—' }}</td>
+              <td class="px-4 py-3 text-body">{{ e.sucursalNombre }}</td>
+              <td class="px-4 py-3">
+                @if (e.estado) {
+                  <span class="badge badge-success">Activo</span>
+                } @else {
+                  <span class="badge badge-muted">Inactivo</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-3">
+                  @if (esDueno) {
+                    <button (click)="toggleEncargado(e)"
+                      class="text-xs font-semibold transition-colors"
+                      [class.text-accent-strong]="!e.esEncargado"
+                      [class.hover:text-primary]="!e.esEncargado"
+                      [class.text-muted]="e.esEncargado"
+                      [class.hover:text-ink]="e.esEncargado">
+                      {{ e.esEncargado ? 'Quitar encargado' : 'Hacer encargado' }}
+                    </button>
+                    <a [routerLink]="['/app/empleados', e.id]"
+                       class="text-primary hover:text-primary-active text-xs font-semibold">Editar</a>
+                    <button (click)="toggleEstado(e)"
+                      class="text-xs font-semibold px-2 py-1 rounded-lg transition-colors"
+                      [class.text-amber-700]="e.estado"
+                      [class.hover:bg-amber-50]="e.estado"
+                      [class.text-green-700]="!e.estado"
+                      [class.hover:bg-green-50]="!e.estado">
+                      {{ e.estado ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  } @else {
+                    <span class="text-xs text-muted-soft">Solo lectura</span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

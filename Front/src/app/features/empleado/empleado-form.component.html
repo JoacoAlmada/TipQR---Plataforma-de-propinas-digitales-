@@ -1,0 +1,80 @@
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <a routerLink="/app/empleados" class="text-sm text-primary hover:text-primary-active">← Volver a empleados</a>
+    <h1 class="text-3xl font-bold text-ink tracking-tight mt-2">
+      {{ esEdicion() ? 'Editar empleado' : 'Nuevo empleado' }}
+    </h1>
+  </div>
+
+  @if (creado(); as c) {
+    <!-- Empleado creado: contraseña temporal -->
+    <div class="card p-8 text-center">
+      <div class="mx-auto w-14 h-14 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-2xl">✓</div>
+      <h2 class="mt-4 text-xl font-bold text-ink">Empleado creado</h2>
+      <p class="mt-2 text-sm text-muted">
+        Se creó la cuenta de <strong>{{ c.nombre }}</strong>. Compartile esta contraseña temporal
+        (también se le envió por email):
+      </p>
+      <div class="mt-4 inline-block px-5 py-3 rounded-xl bg-surface-soft border border-hairline">
+        <span class="font-mono text-lg font-semibold text-ink tracking-wide">{{ c.password }}</span>
+      </div>
+      <div class="mt-6">
+        <a routerLink="/app/empleados" class="btn btn-primary">Volver al listado</a>
+      </div>
+    </div>
+  } @else {
+    @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 space-y-5">
+      <div class="grid sm:grid-cols-2 gap-5">
+        <div>
+          <label class="label">Nombre visible <span class="text-error">*</span></label>
+          <input type="text" formControlName="nombreVisible" class="input"
+            [class.input-error]="f['nombreVisible'].invalid && f['nombreVisible'].touched"
+            placeholder="Cómo lo ve el cliente (ej: Juan)" />
+          @if (f['nombreVisible'].invalid && f['nombreVisible'].touched) { <p class="field-error">Requerido</p> }
+        </div>
+        <div>
+          <label class="label">Apellido <span class="text-error">*</span></label>
+          <input type="text" formControlName="apellido" class="input"
+            [class.input-error]="f['apellido'].invalid && f['apellido'].touched" placeholder="Pérez" />
+          @if (f['apellido'].invalid && f['apellido'].touched) { <p class="field-error">Requerido</p> }
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Email <span class="text-error">*</span></label>
+        <input type="email" formControlName="email" class="input"
+          [class.input-error]="f['email'].invalid && f['email'].touched"
+          placeholder="empleado@email.com" />
+        @if (f['email'].invalid && f['email'].touched) { <p class="field-error">Ingresá un email válido</p> }
+        <p class="text-xs text-muted-soft mt-1">Se le crea una cuenta con rol Empleado y una contraseña temporal.</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-5">
+        <div>
+          <label class="label">Puesto</label>
+          <input type="text" formControlName="puesto" class="input" placeholder="Mozo, Cajero..." />
+        </div>
+        <div>
+          <label class="label">Sucursal <span class="text-error">*</span></label>
+          <select formControlName="sucursalId" class="input"
+            [class.input-error]="f['sucursalId'].invalid && f['sucursalId'].touched">
+            <option [ngValue]="null" disabled>Elegí una sucursal</option>
+            @for (s of sucursales(); track s.id) {
+              <option [ngValue]="s.id">{{ s.nombre }}</option>
+            }
+          </select>
+          @if (f['sucursalId'].invalid && f['sucursalId'].touched) { <p class="field-error">Elegí una sucursal</p> }
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
+          @if (loading()) { Guardando... } @else { Guardar }
+        </button>
+        <a routerLink="/app/empleados" class="btn btn-ghost">Cancelar</a>
+      </div>
+    </form>
+  }
+</div>

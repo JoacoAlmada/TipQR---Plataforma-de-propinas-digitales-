@@ -3,11 +3,11 @@
   <!-- Navbar -->
   <header class="sticky top-0 z-20 bg-sidebar/90 backdrop-blur border-b border-white/10">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-white font-bold text-sm">Tip</span>
-        <span class="text-lg font-bold text-white">TipQR</span>
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold text-sm">T</span>
+        <span class="font-display text-xl font-semibold text-white tracking-tight">TipQR</span>
       </div>
-      <nav class="hidden md:flex items-center gap-8 text-sm text-white/70">
+      <nav class="hidden md:flex items-center gap-9 text-sm text-white/65">
         <a href="#features" class="hover:text-white transition-colors">Funciones</a>
         <a href="#como-funciona" class="hover:text-white transition-colors">Cómo funciona</a>
         <a href="#preview" class="hover:text-white transition-colors">El panel</a>
@@ -15,7 +15,7 @@
       @if (logueado) {
         <a [routerLink]="destinoPanel" class="btn btn-primary btn-sm">Ir al panel</a>
       } @else {
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-5">
           <a routerLink="/login" class="text-sm text-white/80 hover:text-white transition-colors">Iniciar sesión</a>
           <a routerLink="/registro" class="btn btn-primary btn-sm">Crear cuenta</a>
         </div>
@@ -23,50 +23,45 @@
     </div>
   </header>
 
-  <!-- Hero (oscuro con glows) -->
-  <section class="relative overflow-hidden bg-sidebar text-white">
-    <!-- glows decorativos -->
+  <!-- Hero -->
+  <section class="relative overflow-hidden surface-dark text-white">
     <div class="pointer-events-none absolute -top-40 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/40 blur-[130px]"></div>
     <div class="pointer-events-none absolute top-10 -right-20 w-[26rem] h-[26rem] rounded-full bg-accent/25 blur-[130px]"></div>
-    <div class="pointer-events-none absolute bottom-0 left-1/3 w-[22rem] h-[22rem] rounded-full bg-[#420001]/50 blur-[120px]"></div>
 
-    <div class="relative max-w-6xl mx-auto px-6 py-20 md:py-28 grid lg:grid-cols-2 gap-14 items-center">
+    <div class="relative max-w-6xl mx-auto px-6 py-24 md:py-32 grid lg:grid-cols-2 gap-16 items-center">
 
       <!-- Columna texto -->
-      <div class="fade-up">
-        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
-                     bg-white/10 border border-white/15 text-white/90 backdrop-blur">
-          <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
-          Propinas digitales con QR
+      <div>
+        <span class="eyebrow text-accent fade-up">
+          <span class="w-6 h-px bg-accent"></span> Propinas digitales con QR
         </span>
-        <h1 class="mt-6 text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight">
+        <h1 class="mt-6 font-display text-5xl md:text-[4.6rem] font-semibold leading-[0.98] tracking-[-0.02em] fade-up fade-up-1">
           Propinas sin efectivo,
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-[#e0b3b2]">en un escaneo</span>
+          <em class="block not-italic font-normal italic text-accent">en un escaneo.</em>
         </h1>
-        <p class="mt-6 text-lg text-white/70 max-w-xl">
-          Tus clientes dejan propina escaneando un QR, sin efectivo y sin registrarse.
+        <p class="mt-7 text-lg text-white/65 max-w-md leading-relaxed fade-up fade-up-2">
+          Tus clientes dejan propina escaneando un QR — sin efectivo y sin registrarse.
           Gestión completa para bares, restaurantes, cafeterías y hoteles.
         </p>
-        <div class="mt-9 flex flex-wrap items-center gap-3">
+        <div class="mt-10 flex flex-wrap items-center gap-3 fade-up fade-up-3">
           @if (logueado) {
             <a [routerLink]="destinoPanel" class="btn btn-primary">Ir al panel</a>
           } @else {
             <a routerLink="/registro" class="btn btn-primary">Empezar ahora</a>
             <a routerLink="/login"
-               class="btn btn-secondary bg-white/10 text-white border-white/15 hover:bg-white/15">
+               class="btn btn-secondary bg-white/8 text-white border-white/15 hover:bg-white/15 hover:text-white">
               Ya tengo cuenta
             </a>
           }
         </div>
-        <!-- trust row -->
-        <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/60">
+        <div class="mt-12 flex flex-wrap gap-x-8 gap-y-3 text-sm text-white/55 fade-up fade-up-3">
           <span class="flex items-center gap-2"><span class="text-accent">✓</span> Sin efectivo</span>
           <span class="flex items-center gap-2"><span class="text-accent">✓</span> Sin registro del cliente</span>
           <span class="flex items-center gap-2"><span class="text-accent">✓</span> Pagos con Mercado Pago</span>
         </div>
       </div>
 
-      <!-- Columna visual: tarjetas flotantes -->
+      <!-- Columna visual: tarjetas flotantes (SE MANTIENEN) -->
       <div class="relative h-[420px] hidden lg:block">
 
         <!-- Tarjeta principal: propina recibida -->
@@ -75,7 +70,7 @@
             <span class="badge badge-accent">Propina recibida</span>
             <span class="text-muted-soft">•••</span>
           </div>
-          <p class="mt-4 text-5xl font-extrabold tracking-tight">$2.500</p>
+          <p class="mt-4 font-display text-5xl font-semibold tracking-tight">$2.500</p>
           <p class="mt-1 text-sm text-muted">Mesa 4 · Bar La Esquina</p>
           <div class="mt-5 flex items-center gap-3">
             <div class="flex -space-x-2">
@@ -102,93 +97,95 @@
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Strip de claims -->
-  <section class="bg-sidebar">
-    <div class="max-w-6xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6 text-center border-t border-white/10">
-      <div><p class="text-2xl font-bold text-white">QR</p><p class="text-xs text-white/50 mt-0.5">Por mesa o empleado</p></div>
-      <div><p class="text-2xl font-bold text-white">100%</p><p class="text-xs text-white/50 mt-0.5">Digital</p></div>
-      <div><p class="text-2xl font-bold text-white">Auto</p><p class="text-xs text-white/50 mt-0.5">Reparto grupal</p></div>
-      <div><p class="text-2xl font-bold text-white">MP</p><p class="text-xs text-white/50 mt-0.5">Mercado Pago</p></div>
+    <!-- Strip de claims -->
+    <div class="relative border-t border-white/10">
+      <div class="max-w-6xl mx-auto px-6 py-7 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div><p class="font-display text-3xl font-semibold text-white">QR</p><p class="text-xs text-white/45 mt-1 uppercase tracking-wider">Por mesa o empleado</p></div>
+        <div><p class="font-display text-3xl font-semibold text-white">100%</p><p class="text-xs text-white/45 mt-1 uppercase tracking-wider">Digital</p></div>
+        <div><p class="font-display text-3xl font-semibold text-white">Auto</p><p class="text-xs text-white/45 mt-1 uppercase tracking-wider">Reparto grupal</p></div>
+        <div><p class="font-display text-3xl font-semibold text-white">MP</p><p class="text-xs text-white/45 mt-1 uppercase tracking-wider">Mercado Pago</p></div>
+      </div>
     </div>
   </section>
 
   <!-- Features -->
-  <section id="features" class="max-w-6xl mx-auto px-6 py-24">
-    <div class="text-center max-w-2xl mx-auto">
-      <span class="badge badge-accent">Funciones</span>
-      <h2 class="mt-3 text-3xl font-bold text-ink tracking-tight">Todo lo que necesita tu comercio</h2>
-      <p class="mt-2 text-muted">Una plataforma para administrar las propinas de principio a fin.</p>
+  <section id="features" class="max-w-6xl mx-auto px-6 py-28">
+    <div class="max-w-2xl">
+      <span class="eyebrow">Funciones</span>
+      <h2 class="mt-4 font-display text-4xl font-semibold text-ink leading-tight">
+        Todo lo que necesita tu comercio
+      </h2>
+      <p class="mt-3 text-muted text-lg">Una plataforma para administrar las propinas de principio a fin.</p>
     </div>
 
-    <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="card card-hover p-6">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-[#420001] text-white flex items-center justify-center text-xl shadow-lg">📲</div>
-        <h3 class="mt-4 font-semibold text-ink">Escaneá y listo</h3>
-        <p class="mt-1 text-sm text-muted">El cliente escanea el QR, elige el monto y paga. Sin apps ni registros.</p>
+    <div class="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="card card-hover p-7">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-[#420001] text-[#fdfaf4] flex items-center justify-center text-xl">📲</div>
+        <h3 class="mt-5 font-display text-xl font-semibold text-ink">Escaneá y listo</h3>
+        <p class="mt-2 text-sm text-muted leading-relaxed">El cliente escanea el QR, elige el monto y paga. Sin apps ni registros.</p>
       </div>
-      <div class="card card-hover p-6">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-[#420001] text-white flex items-center justify-center text-xl shadow-lg">👥</div>
-        <h3 class="mt-4 font-semibold text-ink">Propinas grupales</h3>
-        <p class="mt-1 text-sm text-muted">Distribución automática y equitativa entre los empleados de un grupo o turno.</p>
+      <div class="card card-hover p-7">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-[#420001] text-[#fdfaf4] flex items-center justify-center text-xl">👥</div>
+        <h3 class="mt-5 font-display text-xl font-semibold text-ink">Propinas grupales</h3>
+        <p class="mt-2 text-sm text-muted leading-relaxed">Distribución automática y equitativa entre los empleados de un grupo o turno.</p>
       </div>
-      <div class="card card-hover p-6">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-[#420001] text-white flex items-center justify-center text-xl shadow-lg">💳</div>
-        <h3 class="mt-4 font-semibold text-ink">Pagos con Mercado Pago</h3>
-        <p class="mt-1 text-sm text-muted">Cobro seguro a través de Mercado Pago, con conciliación automática del estado.</p>
+      <div class="card card-hover p-7">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-[#420001] text-[#fdfaf4] flex items-center justify-center text-xl">💳</div>
+        <h3 class="mt-5 font-display text-xl font-semibold text-ink">Pagos con Mercado Pago</h3>
+        <p class="mt-2 text-sm text-muted leading-relaxed">Cobro seguro a través de Mercado Pago, con conciliación automática del estado.</p>
       </div>
-      <div class="card card-hover p-6">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-[#9c5f5e] text-white flex items-center justify-center text-xl shadow-lg">📊</div>
-        <h3 class="mt-4 font-semibold text-ink">Reportes y control</h3>
-        <p class="mt-1 text-sm text-muted">Indicadores por sucursal, ranking de empleados y resúmenes automáticos.</p>
+      <div class="card card-hover p-7">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-accent-strong text-[#fdfaf4] flex items-center justify-center text-xl">📊</div>
+        <h3 class="mt-5 font-display text-xl font-semibold text-ink">Reportes y control</h3>
+        <p class="mt-2 text-sm text-muted leading-relaxed">Indicadores por sucursal, ranking de empleados y resúmenes automáticos.</p>
       </div>
     </div>
   </section>
 
   <!-- Cómo funciona -->
   <section id="como-funciona" class="bg-surface-soft border-y border-hairline">
-    <div class="max-w-6xl mx-auto px-6 py-24">
-      <div class="text-center">
-        <span class="badge badge-accent">Simple</span>
-        <h2 class="mt-3 text-3xl font-bold text-ink tracking-tight">Cómo funciona</h2>
+    <div class="max-w-6xl mx-auto px-6 py-28">
+      <div class="text-center max-w-xl mx-auto">
+        <span class="eyebrow">Simple</span>
+        <h2 class="mt-4 font-display text-4xl font-semibold text-ink">Cómo funciona</h2>
       </div>
-      <div class="mt-14 grid gap-8 md:grid-cols-3">
-        <div class="relative card p-7">
-          <div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg">1</div>
-          <h3 class="mt-5 font-semibold text-ink">El comercio configura</h3>
-          <p class="mt-1 text-sm text-muted">Carga sus sucursales, empleados y mesas, y genera los códigos QR.</p>
+      <div class="mt-16 grid gap-6 md:grid-cols-3">
+        <div class="card p-8">
+          <span class="font-display text-5xl font-semibold text-primary/25">01</span>
+          <h3 class="mt-4 font-display text-xl font-semibold text-ink">El comercio configura</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Carga sus sucursales, empleados y mesas, y genera los códigos QR.</p>
         </div>
-        <div class="relative card p-7">
-          <div class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shadow-lg">2</div>
-          <h3 class="mt-5 font-semibold text-ink">El cliente escanea</h3>
-          <p class="mt-1 text-sm text-muted">Elige el monto de propina y paga con Mercado Pago desde su celular.</p>
+        <div class="card p-8">
+          <span class="font-display text-5xl font-semibold text-primary/25">02</span>
+          <h3 class="mt-4 font-display text-xl font-semibold text-ink">El cliente escanea</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">Elige el monto de propina y paga con Mercado Pago desde su celular.</p>
         </div>
-        <div class="relative card p-7">
-          <div class="w-12 h-12 rounded-full bg-accent text-ink flex items-center justify-center font-bold text-lg shadow-lg">3</div>
-          <h3 class="mt-5 font-semibold text-ink">Se distribuye</h3>
-          <p class="mt-1 text-sm text-muted">El empleado recibe su propina y el comercio ve todo en su panel.</p>
+        <div class="card p-8">
+          <span class="font-display text-5xl font-semibold text-accent/50">03</span>
+          <h3 class="mt-4 font-display text-xl font-semibold text-ink">Se distribuye</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">El empleado recibe su propina y el comercio ve todo en su panel.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Preview del panel -->
-  <section id="preview" class="max-w-6xl mx-auto px-6 py-24">
-    <div class="grid lg:grid-cols-2 gap-12 items-center">
+  <section id="preview" class="max-w-6xl mx-auto px-6 py-28">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
       <div>
-        <span class="badge badge-accent">El panel</span>
-        <h2 class="mt-3 text-3xl font-bold text-ink tracking-tight">Tu comercio, bajo control</h2>
-        <p class="mt-3 text-muted">
+        <span class="eyebrow">El panel</span>
+        <h2 class="mt-4 font-display text-4xl font-semibold text-ink leading-tight">Tu comercio, bajo control</h2>
+        <p class="mt-4 text-muted text-lg leading-relaxed">
           Desde un panel claro administrás empresas, sucursales, empleados y mesas.
           Seguí las propinas, el reparto entre el equipo y los reportes en un solo lugar.
         </p>
-        <ul class="mt-6 space-y-3 text-sm text-body">
-          <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Roles para dueño, encargado y empleado</li>
-          <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Métricas y accesos rápidos</li>
-          <li class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Distribución automática de propinas</li>
+        <ul class="mt-7 space-y-4 text-sm text-body">
+          <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Roles para dueño, encargado y empleado</li>
+          <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Métricas y accesos rápidos</li>
+          <li class="flex items-center gap-3"><span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs">✓</span> Distribución automática de propinas</li>
         </ul>
-        <a [routerLink]="logueado ? destinoPanel : '/login'" class="btn btn-primary mt-8">
+        <a [routerLink]="logueado ? destinoPanel : '/login'" class="btn btn-primary mt-9">
           {{ logueado ? 'Ir al panel' : 'Probar el sistema' }}
         </a>
       </div>
@@ -197,35 +194,32 @@
       <div class="relative">
         <div class="pointer-events-none absolute -inset-6 bg-gradient-to-tr from-primary/15 to-accent/15 blur-2xl rounded-3xl"></div>
         <div class="relative rounded-2xl border border-hairline bg-surface-card shadow-2xl overflow-hidden">
-          <!-- barra de ventana -->
           <div class="h-9 bg-surface-soft border-b border-hairline flex items-center gap-1.5 px-4">
             <span class="w-2.5 h-2.5 rounded-full bg-[#e0b3b2]"></span>
             <span class="w-2.5 h-2.5 rounded-full bg-accent"></span>
             <span class="w-2.5 h-2.5 rounded-full bg-primary/40"></span>
           </div>
           <div class="flex">
-            <!-- mini sidebar -->
-            <div class="w-16 bg-sidebar p-3 space-y-3 hidden sm:block">
+            <div class="w-16 surface-dark p-3 space-y-3 hidden sm:block">
               <div class="w-8 h-8 rounded-lg bg-primary"></div>
               <div class="w-8 h-3 rounded bg-white/15"></div>
               <div class="w-8 h-3 rounded bg-white/25"></div>
               <div class="w-8 h-3 rounded bg-white/10"></div>
             </div>
-            <!-- contenido -->
             <div class="flex-1 p-5">
               <div class="h-3 w-24 rounded bg-surface-soft"></div>
               <div class="mt-4 grid grid-cols-3 gap-3">
                 <div class="rounded-xl bg-primary text-white p-3">
                   <div class="h-2 w-8 bg-white/40 rounded"></div>
-                  <p class="mt-2 text-xl font-bold">12</p>
+                  <p class="mt-2 font-display text-xl font-semibold">12</p>
                 </div>
                 <div class="rounded-xl border border-hairline p-3">
                   <div class="h-2 w-8 bg-surface-soft rounded"></div>
-                  <p class="mt-2 text-xl font-bold text-muted-soft">—</p>
+                  <p class="mt-2 font-display text-xl font-semibold text-muted-soft">—</p>
                 </div>
                 <div class="rounded-xl border border-hairline p-3">
                   <div class="h-2 w-8 bg-surface-soft rounded"></div>
-                  <p class="mt-2 text-xl font-bold text-muted-soft">—</p>
+                  <p class="mt-2 font-display text-xl font-semibold text-muted-soft">—</p>
                 </div>
               </div>
               <div class="mt-4 space-y-2">
@@ -240,21 +234,22 @@
     </div>
   </section>
 
-  <!-- CTA final (banda oscura) -->
-  <section class="px-6 pb-24">
-    <div class="relative max-w-6xl mx-auto rounded-3xl overflow-hidden bg-sidebar text-white text-center px-6 py-16">
+  <!-- CTA final -->
+  <section class="px-6 pb-28">
+    <div class="relative max-w-6xl mx-auto rounded-[2rem] overflow-hidden surface-dark text-white text-center px-6 py-20">
       <div class="pointer-events-none absolute -top-20 left-1/4 w-80 h-80 rounded-full bg-primary/40 blur-[120px]"></div>
       <div class="pointer-events-none absolute -bottom-24 right-1/4 w-80 h-80 rounded-full bg-accent/25 blur-[120px]"></div>
       <div class="relative">
-        <h2 class="text-3xl md:text-4xl font-bold tracking-tight">¿Listo para empezar?</h2>
-        <p class="mt-3 text-white/70">Registrá tu comercio y empezá a recibir propinas digitales hoy.</p>
+        <span class="eyebrow text-accent justify-center">Empezá hoy</span>
+        <h2 class="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight">¿Listo para empezar?</h2>
+        <p class="mt-4 text-white/65 text-lg">Registrá tu comercio y empezá a recibir propinas digitales hoy.</p>
         @if (logueado) {
-          <a [routerLink]="destinoPanel" class="btn btn-primary mt-8">Ir al panel</a>
+          <a [routerLink]="destinoPanel" class="btn btn-primary mt-9">Ir al panel</a>
         } @else {
-          <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
             <a routerLink="/registro" class="btn btn-primary">Crear cuenta gratis</a>
             <a routerLink="/login"
-               class="btn btn-secondary bg-white/10 text-white border-white/15 hover:bg-white/15">
+               class="btn btn-secondary bg-white/8 text-white border-white/15 hover:bg-white/15 hover:text-white">
               Iniciar sesión
             </a>
           </div>
@@ -265,9 +260,9 @@
 
   <!-- Footer -->
   <footer class="border-t border-hairline">
-    <div class="max-w-6xl mx-auto px-6 py-8 text-center text-sm text-muted-soft">
-      <p class="font-medium text-muted">TipQR — Plataforma de propinas digitales</p>
-      <p class="mt-1">Trabajo Final Integrador · Tecnicatura Universitaria en Programación · UTN FRC</p>
+    <div class="max-w-6xl mx-auto px-6 py-10 text-center text-sm text-muted-soft">
+      <p class="font-display text-base text-muted">TipQR — Plataforma de propinas digitales</p>
+      <p class="mt-2">Trabajo Final Integrador · Tecnicatura Universitaria en Programación · UTN FRC</p>
       <p class="mt-1">Almada Joaquín — Legajo 412180</p>
     </div>
   </footer>

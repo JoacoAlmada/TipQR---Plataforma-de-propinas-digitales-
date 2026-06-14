@@ -63,9 +63,79 @@ export const routes: Routes = [
           import('./features/empleado/empleado-dashboard.component').then(m => m.EmpleadoDashboardComponent)
       },
       {
+        path: 'encargado',
+        loadComponent: () =>
+          import('./features/encargado/encargado-dashboard.component').then(m => m.EncargadoDashboardComponent)
+      },
+      {
         path: 'empresa',
         loadComponent: () =>
           import('./features/empresa/mi-empresa.component').then(m => m.MiEmpresaComponent)
+      },
+      {
+        path: 'sucursales',
+        loadComponent: () =>
+          import('./features/sucursal/sucursal-list.component').then(m => m.SucursalListComponent)
+      },
+      {
+        path: 'sucursales/nueva',
+        loadComponent: () =>
+          import('./features/sucursal/sucursal-form.component').then(m => m.SucursalFormComponent)
+      },
+      {
+        path: 'sucursales/:id',
+        loadComponent: () =>
+          import('./features/sucursal/sucursal-form.component').then(m => m.SucursalFormComponent)
+      },
+      {
+        path: 'empleados',
+        loadComponent: () =>
+          import('./features/empleado/empleado-list.component').then(m => m.EmpleadoListComponent)
+      },
+      {
+        path: 'empleados/nuevo',
+        loadComponent: () =>
+          import('./features/empleado/empleado-form.component').then(m => m.EmpleadoFormComponent)
+      },
+      {
+        path: 'empleados/:id',
+        loadComponent: () =>
+          import('./features/empleado/empleado-form.component').then(m => m.EmpleadoFormComponent)
+      },
+      {
+        path: 'mesas',
+        loadComponent: () =>
+          import('./features/mesa/mesa-list.component').then(m => m.MesaListComponent)
+      },
+      {
+        path: 'mesas/nueva',
+        loadComponent: () =>
+          import('./features/mesa/mesa-form.component').then(m => m.MesaFormComponent)
+      },
+      {
+        path: 'mesas/:id',
+        loadComponent: () =>
+          import('./features/mesa/mesa-form.component').then(m => m.MesaFormComponent)
+      },
+      {
+        path: 'grupos',
+        loadComponent: () =>
+          import('./features/grupo/grupo-list.component').then(m => m.GrupoListComponent)
+      },
+      {
+        path: 'grupos/nuevo',
+        loadComponent: () =>
+          import('./features/grupo/grupo-form.component').then(m => m.GrupoFormComponent)
+      },
+      {
+        path: 'grupos/:id',
+        loadComponent: () =>
+          import('./features/grupo/grupo-form.component').then(m => m.GrupoFormComponent)
+      },
+      {
+        path: 'grupos/:id/miembros',
+        loadComponent: () =>
+          import('./features/grupo/grupo-miembros.component').then(m => m.GrupoMiembrosComponent)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

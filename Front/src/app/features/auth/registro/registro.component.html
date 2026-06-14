@@ -1,56 +1,91 @@
-<div class="min-h-screen bg-gradient-to-br from-surface-soft via-canvas to-primary/5 py-12 px-4">
-  <div class="w-full max-w-3xl mx-auto">
+<div class="min-h-screen lg:grid lg:grid-cols-[400px_1fr]">
 
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <a routerLink="/" class="inline-flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-white font-bold">Tip</span>
-        <span class="text-2xl font-bold text-primary-active">TipQR</span>
-      </a>
+  <!-- ════ Panel de progreso (oscuro) ════ -->
+  <aside class="relative surface-dark text-white p-8 lg:p-10 lg:sticky lg:top-0 lg:h-screen flex flex-col overflow-hidden">
+    <div class="pointer-events-none absolute -top-24 -left-16 w-80 h-80 rounded-full bg-primary/40 blur-[110px]"></div>
+    <div class="pointer-events-none absolute bottom-0 -right-10 w-72 h-72 rounded-full bg-accent/20 blur-[110px]"></div>
+
+    <a routerLink="/" class="relative flex items-center gap-2.5">
+      <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold">T</span>
+      <span class="font-display text-2xl font-semibold tracking-tight">TipQR</span>
+    </a>
+
+    <div class="relative mt-10 lg:mt-14">
+      <span class="eyebrow text-accent">Crear cuenta</span>
+      <h1 class="mt-4 font-display text-3xl lg:text-4xl font-semibold leading-tight">
+        Sumá tu comercio<br>a TipQR.
+      </h1>
     </div>
 
-    @if (finalizado()) {
-      <!-- ── Pantalla final ── -->
-      <div class="card p-12 text-center">
-        <div class="mx-auto w-16 h-16 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-3xl">✓</div>
-        <h1 class="mt-6 text-2xl font-bold text-ink">¡Registro enviado!</h1>
-        <p class="mt-3 text-muted max-w-md mx-auto leading-relaxed">
-          Estaremos validando tu cuenta. Esto puede demorar entre <strong>1 y 4 horas</strong>.
-          Te avisaremos por email cuando esté aprobada.
-        </p>
-        <button (click)="irAlLogin()" class="btn btn-primary mt-8">Ir al inicio de sesión</button>
-      </div>
-    } @else {
-
-      <!-- ── Indicador de pasos ── -->
-      <div class="flex items-center justify-center gap-3 sm:gap-4 mb-10">
-        @for (s of [1,2,3]; track s) {
-          <div class="flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-                 [class.bg-primary]="paso() >= s"
-                 [class.text-white]="paso() >= s"
-                 [class.bg-surface-soft]="paso() < s"
-                 [class.text-muted-soft]="paso() < s">
-              @if (paso() > s) { ✓ } @else { {{ s }} }
+    <!-- Stepper vertical -->
+    <ol class="relative mt-10 lg:mt-12">
+      @for (st of pasosInfo; track st.n) {
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 transition-all"
+                 [class.bg-primary]="paso() === st.n"
+                 [class.text-white]="paso() === st.n"
+                 [class.bg-accent]="paso() > st.n"
+                 [class.text-ink]="paso() > st.n"
+                 [class.bg-white/8]="paso() < st.n"
+                 [class.text-white/40]="paso() < st.n"
+                 [class.ring-4]="paso() === st.n"
+                 [class.ring-primary/25]="paso() === st.n">
+              @if (paso() > st.n) { ✓ } @else { {{ st.n }} }
             </div>
-            <span class="text-sm hidden sm:inline"
-                  [class.text-ink]="paso() >= s" [class.font-medium]="paso() >= s"
-                  [class.text-muted-soft]="paso() < s">
-              {{ s === 1 ? 'Tus datos' : s === 2 ? 'Comercio' : 'Documentos' }}
-            </span>
+            @if (st.n < 3) {
+              <div class="w-px flex-1 my-2 min-h-10" [class.bg-accent/40]="paso() > st.n" [class.bg-white/12]="paso() <= st.n"></div>
+            }
           </div>
-          @if (s < 3) { <div class="w-10 sm:w-14 h-px bg-hairline"></div> }
-        }
-      </div>
+          <div class="pb-7">
+            <p class="font-display text-lg font-semibold transition-colors"
+               [class.text-white]="paso() >= st.n" [class.text-white/40]="paso() < st.n">{{ st.titulo }}</p>
+            <p class="text-sm mt-0.5 transition-colors"
+               [class.text-white/55]="paso() >= st.n" [class.text-white/30]="paso() < st.n">{{ st.desc }}</p>
+          </div>
+        </li>
+      }
+    </ol>
 
-      @if (errorMsg()) { <div class="alert-error mb-6">{{ errorMsg() }}</div> }
+    <p class="relative mt-auto pt-8 text-xs text-white/40 hidden lg:block">
+      Tu solicitud la valida nuestro equipo · suele demorar 1 a 4 horas.
+    </p>
+  </aside>
 
-      <!-- ── PASO 1: datos del usuario ── -->
-      @if (paso() === 1) {
-        <div class="card p-8 sm:p-10">
-          <h2 class="text-xl font-semibold text-ink">Tus datos</h2>
-          <p class="text-sm text-muted mt-1 mb-7">Creá tu cuenta de administrador.</p>
+  <!-- ════ Panel del formulario ════ -->
+  <main class="bg-canvas p-6 sm:p-10 lg:p-14 flex flex-col">
+    <div class="w-full max-w-xl mx-auto lg:mx-0">
 
+      @if (finalizado()) {
+        <!-- ── Pantalla final ── -->
+        <div class="card p-10 sm:p-12 text-center mt-6">
+          <div class="mx-auto w-16 h-16 rounded-full bg-success-soft text-[#3a5f3c] flex items-center justify-center text-3xl">✓</div>
+          <h1 class="mt-6 font-display text-3xl font-semibold text-ink">¡Registro enviado!</h1>
+          <p class="mt-3 text-muted max-w-md mx-auto leading-relaxed">
+            Estaremos validando tu cuenta. Esto puede demorar entre <strong class="text-ink">1 y 4 horas</strong>.
+            Te avisaremos por email cuando esté aprobada.
+          </p>
+          <button (click)="irAlLogin()" class="btn btn-primary mt-8">Ir al inicio de sesión</button>
+        </div>
+      } @else {
+
+        <!-- Progreso compacto (mobile) -->
+        <div class="lg:hidden flex items-center gap-2 mb-8">
+          @for (s of [1,2,3]; track s) {
+            <div class="h-1.5 flex-1 rounded-full" [class.bg-primary]="paso() >= s" [class.bg-surface-soft]="paso() < s"></div>
+          }
+        </div>
+
+        <div class="mb-8">
+          <span class="eyebrow">Paso {{ paso() }} de 3</span>
+          <h2 class="mt-2 font-display text-3xl font-semibold text-ink">{{ pasosInfo[paso()-1].titulo }}</h2>
+          <p class="text-sm text-muted mt-1">{{ pasosInfo[paso()-1].desc }}</p>
+        </div>
+
+        @if (errorMsg()) { <div class="alert-error mb-6">{{ errorMsg() }}</div> }
+
+        <!-- ── PASO 1 ── -->
+        @if (paso() === 1) {
           <form [formGroup]="form1" (ngSubmit)="enviarPaso1()" class="space-y-6">
             <fieldset [disabled]="verificacionPendiente()" class="space-y-6 disabled:opacity-60">
               <div class="grid sm:grid-cols-2 gap-5">
@@ -72,9 +107,7 @@
                 <label class="label">Email <span class="text-error">*</span></label>
                 <input type="email" formControlName="email" class="input"
                   [class.input-error]="f1['email'].invalid && f1['email'].touched" placeholder="tu@email.com" />
-                @if (f1['email'].invalid && f1['email'].touched) {
-                  <p class="field-error">Ingresá un email válido (debe contener @)</p>
-                }
+                @if (f1['email'].invalid && f1['email'].touched) { <p class="field-error">Ingresá un email válido (debe contener @)</p> }
               </div>
 
               <div>
@@ -97,59 +130,47 @@
                   <input type="text" inputmode="numeric" formControlName="cuit" class="input"
                     (input)="soloCuit($event, 'form1')"
                     [class.input-error]="f1['cuit'].invalid && f1['cuit'].touched" placeholder="20-12345678-9" />
-                  @if (f1['cuit'].invalid && f1['cuit'].touched) { <p class="field-error">CUIT inválido (11 dígitos)</p> }
+                  @if (f1['cuit'].invalid && f1['cuit'].touched) { <p class="field-error">CUIT inválido</p> }
                 </div>
                 <div>
                   <label class="label">DNI <span class="text-error">*</span></label>
                   <input type="text" inputmode="numeric" formControlName="dni" class="input"
                     (input)="soloNumeros($event, 'dni')"
                     [class.input-error]="f1['dni'].invalid && f1['dni'].touched" placeholder="40123456" />
-                  @if (f1['dni'].invalid && f1['dni'].touched) { <p class="field-error">Solo números (7 a 9)</p> }
+                  @if (f1['dni'].invalid && f1['dni'].touched) { <p class="field-error">Solo números</p> }
                 </div>
               </div>
 
-              <!-- reCAPTCHA -->
-              <div class="pt-5 border-t border-hairline">
+              <div class="pt-6 border-t border-hairline">
                 <label class="label">Verificación de seguridad <span class="text-error">*</span></label>
                 <div #captcha class="mt-1"></div>
               </div>
             </fieldset>
 
             @if (!verificacionPendiente()) {
-              <button type="submit" [disabled]="loading() || form1.invalid || !captchaToken()"
-                      class="btn btn-primary w-full">
+              <button type="submit" [disabled]="loading() || form1.invalid || !captchaToken()" class="btn btn-primary w-full">
                 @if (loading()) { Creando cuenta... } @else { Crear cuenta y validar email }
               </button>
               @if (form1.invalid || !captchaToken()) {
-                <p class="text-xs text-muted-soft text-center mt-2">
-                  Completá todos los campos obligatorios y la verificación para continuar.
-                </p>
+                <p class="text-xs text-muted-soft text-center mt-2">Completá los campos obligatorios y la verificación para continuar.</p>
               }
             }
           </form>
 
-          <!-- Panel de verificación de email -->
           @if (verificacionPendiente()) {
-            <div class="mt-7 p-6 rounded-xl bg-accent-soft border border-accent/30">
-              <p class="font-semibold text-ink">📧 Revisá tu email</p>
+            <div class="mt-7 p-6 rounded-2xl bg-accent-soft border border-accent/30">
+              <p class="font-display text-lg font-semibold text-ink">📧 Revisá tu email</p>
               <p class="text-sm text-body mt-1.5 leading-relaxed">
                 Te enviamos un link a <strong>{{ f1['email'].value }}</strong>.
-                Hacé clic para validar tu cuenta. Esta pantalla seguirá sola cuando lo hagas.
+                Hacé clic para validar tu cuenta — esta pantalla seguirá sola cuando lo hagas.
               </p>
-              <button (click)="chequearVerificacion()" class="btn btn-secondary btn-sm mt-4">
-                Ya validé, continuar
-              </button>
+              <button (click)="chequearVerificacion()" class="btn btn-secondary btn-sm mt-4">Ya validé, continuar</button>
             </div>
           }
-        </div>
-      }
+        }
 
-      <!-- ── PASO 2: datos del comercio ── -->
-      @if (paso() === 2) {
-        <div class="card p-8 sm:p-10">
-          <h2 class="text-xl font-semibold text-ink">Tu comercio</h2>
-          <p class="text-sm text-muted mt-1 mb-7">Contanos sobre tu negocio.</p>
-
+        <!-- ── PASO 2 ── -->
+        @if (paso() === 2) {
           <form [formGroup]="form2" (ngSubmit)="enviarPaso2()" class="space-y-6">
             <div class="grid sm:grid-cols-2 gap-5">
               <div>
@@ -205,39 +226,40 @@
               @if (loading()) { Guardando... } @else { Continuar a documentos }
             </button>
             @if (form2.invalid) {
-              <p class="text-xs text-muted-soft text-center mt-2">
-                Completá todos los campos obligatorios para continuar.
-              </p>
+              <p class="text-xs text-muted-soft text-center mt-2">Completá los campos obligatorios para continuar.</p>
             }
           </form>
-        </div>
-      }
+        }
 
-      <!-- ── PASO 3: documentos ── -->
-      @if (paso() === 3) {
-        <div class="card p-8 sm:p-10">
-          <h2 class="text-xl font-semibold text-ink">Documentación</h2>
-          <p class="text-sm text-muted mt-1 mb-7">Adjuntá los 4 documentos para validar tu identidad.</p>
-
-          <div class="space-y-4">
+        <!-- ── PASO 3 ── -->
+        @if (paso() === 3) {
+          <div class="space-y-3">
             @for (d of tiposDoc; track d.tipo) {
-              <div class="flex items-center justify-between gap-4 p-5 rounded-xl border border-hairline"
+              <div class="flex items-center justify-between gap-4 p-5 rounded-2xl border transition-colors"
                    [class.bg-success-soft]="estaSubido(d.tipo)"
-                   [class.border-green-200]="estaSubido(d.tipo)">
-                <div class="min-w-0">
-                  <p class="font-medium text-ink text-sm">{{ d.label }}</p>
-                  <p class="text-xs text-muted mt-0.5">{{ d.hint }}</p>
+                   [class.border-green-200]="estaSubido(d.tipo)"
+                   [class.border-hairline]="!estaSubido(d.tipo)"
+                   [class.bg-surface-card]="!estaSubido(d.tipo)">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                       [class.bg-success]="estaSubido(d.tipo)" [class.text-white]="estaSubido(d.tipo)"
+                       [class.bg-surface-soft]="!estaSubido(d.tipo)" [class.text-muted]="!estaSubido(d.tipo)">
+                    {{ estaSubido(d.tipo) ? '✓' : '📄' }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-medium text-ink text-sm">{{ d.label }}</p>
+                    <p class="text-xs text-muted mt-0.5">{{ d.hint }}</p>
+                  </div>
                 </div>
                 <div class="shrink-0">
                   @if (estaSubido(d.tipo)) {
-                    <span class="badge badge-success">✓ Cargado</span>
+                    <span class="badge badge-success">Cargado</span>
                   } @else if (subiendoDoc() === d.tipo) {
                     <span class="text-xs text-muted">Subiendo...</span>
                   } @else {
                     <label class="btn btn-secondary btn-sm cursor-pointer">
                       Elegir archivo
-                      <input type="file" [accept]="d.accept" class="hidden"
-                             (change)="onArchivo(d.tipo, $event)" />
+                      <input type="file" [accept]="d.accept" class="hidden" (change)="onArchivo(d.tipo, $event)" />
                     </label>
                   }
                 </div>
@@ -251,13 +273,13 @@
           @if (!todosLosDocs) {
             <p class="text-xs text-muted-soft text-center mt-3">Subí los 4 documentos para finalizar.</p>
           }
-        </div>
-      }
+        }
 
-      <p class="text-center mt-8 text-sm text-muted">
-        ¿Ya tenés cuenta?
-        <a routerLink="/login" class="text-primary font-semibold hover:text-primary-active">Iniciá sesión</a>
-      </p>
-    }
-  </div>
+        <p class="mt-10 text-sm text-muted">
+          ¿Ya tenés cuenta?
+          <a routerLink="/login" class="text-primary font-semibold hover:text-primary-active">Iniciá sesión</a>
+        </p>
+      }
+    </div>
+  </main>
 </div>

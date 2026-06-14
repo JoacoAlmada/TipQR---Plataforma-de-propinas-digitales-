@@ -1,0 +1,75 @@
+<div>
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <span class="eyebrow">Gestión</span>
+      <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">Sucursales</h1>
+      <p class="mt-1.5 text-sm text-muted">Locales físicos de tu comercio</p>
+    </div>
+    @if (esDueno) {
+      <a routerLink="/app/sucursales/nueva" class="btn btn-primary">+ Nueva sucursal</a>
+    }
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando sucursales...</div>
+  } @else if (sucursales().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">🏬</div>
+      <p class="mt-4 text-muted text-sm">Todavía no tenés sucursales cargadas.</p>
+      @if (esDueno) {
+        <a routerLink="/app/sucursales/nueva" class="btn btn-primary mt-5">Crear la primera</a>
+      }
+    </div>
+  } @else {
+    <div class="card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-soft text-muted text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Nombre</th>
+            <th class="px-4 py-3 font-medium">Dirección</th>
+            <th class="px-4 py-3 font-medium">Teléfono</th>
+            <th class="px-4 py-3 font-medium">Estado</th>
+            <th class="px-4 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline">
+          @for (s of sucursales(); track s.id) {
+            <tr class="hover:bg-canvas transition-colors">
+              <td class="px-4 py-3 font-medium text-ink">{{ s.nombre }}</td>
+              <td class="px-4 py-3 text-body">{{ s.direccion || '—' }}</td>
+              <td class="px-4 py-3 text-body">{{ s.telefono || '—' }}</td>
+              <td class="px-4 py-3">
+                @if (s.estado) {
+                  <span class="badge badge-success">Activa</span>
+                } @else {
+                  <span class="badge badge-muted">Inactiva</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-3">
+                  @if (esDueno) {
+                    <a [routerLink]="['/app/sucursales', s.id]"
+                       class="text-primary hover:text-primary-active text-xs font-semibold">Editar</a>
+                    <button (click)="toggleEstado(s)"
+                      class="text-xs font-semibold px-2 py-1 rounded-lg transition-colors"
+                      [class.text-amber-700]="s.estado"
+                      [class.hover:bg-amber-50]="s.estado"
+                      [class.text-green-700]="!s.estado"
+                      [class.hover:bg-green-50]="!s.estado">
+                      {{ s.estado ? 'Desactivar' : 'Activar' }}
+                    </button>
+                  } @else {
+                    <span class="text-xs text-muted-soft">Solo lectura</span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

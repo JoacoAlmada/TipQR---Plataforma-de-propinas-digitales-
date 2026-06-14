@@ -1,0 +1,88 @@
+<div>
+  <!-- Encabezado -->
+  <div class="mb-7">
+    <a routerLink="/app/grupos" class="text-sm text-primary hover:text-primary-active">← Volver a grupos</a>
+    <span class="eyebrow block mt-3">Miembros del grupo</span>
+    <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">{{ grupo()?.nombre || 'Grupo' }}</h1>
+    @if (grupo()) {
+      <p class="mt-1.5 text-sm text-muted flex items-center gap-2">
+        <span class="text-accent-strong">🏬</span> {{ grupo()!.sucursalNombre }}
+        @if (grupo()!.tipoGrupo) { <span class="badge badge-accent ml-1">{{ grupo()!.tipoGrupo }}</span> }
+      </p>
+    }
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando...</div>
+  } @else {
+    <div class="grid lg:grid-cols-2 gap-6 items-start">
+
+      <!-- En el grupo -->
+      <div class="card p-6">
+        <div class="flex items-baseline justify-between mb-4">
+          <h2 class="font-display text-xl font-semibold text-ink">En el grupo</h2>
+          <span class="text-xs text-muted">{{ miembros().length }} {{ miembros().length === 1 ? 'miembro' : 'miembros' }}</span>
+        </div>
+
+        @if (miembros().length === 0) {
+          <p class="text-sm text-muted-soft py-8 text-center">Todavía no hay empleados en este grupo.</p>
+        } @else {
+          <ul class="space-y-2">
+            @for (m of miembros(); track m.empleadoId) {
+              <li class="flex items-center gap-3 p-3 rounded-xl border border-hairline">
+                <span class="w-9 h-9 rounded-full bg-primary/12 text-primary font-display font-semibold flex items-center justify-center shrink-0">
+                  {{ m.nombreVisible.charAt(0) }}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-ink truncate">{{ m.nombreVisible }} {{ m.apellido }}</p>
+                  <p class="text-xs text-muted truncate">{{ m.puesto || m.email }}</p>
+                </div>
+                @if (esDueno) {
+                  <button (click)="remover(m)" [disabled]="procesando() === m.empleadoId"
+                    class="text-xs font-semibold text-error hover:bg-error-soft px-2.5 py-1.5 rounded-lg transition-colors shrink-0">
+                    Remover
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- Disponibles -->
+      <div class="card p-6">
+        <div class="flex items-baseline justify-between mb-4">
+          <h2 class="font-display text-xl font-semibold text-ink">Disponibles</h2>
+          <span class="text-xs text-muted">de {{ grupo()?.sucursalNombre }}</span>
+        </div>
+
+        @if (disponibles().length === 0) {
+          <p class="text-sm text-muted-soft py-8 text-center">No hay más empleados de esta sucursal para agregar.</p>
+        } @else {
+          <ul class="space-y-2">
+            @for (e of disponibles(); track e.id) {
+              <li class="flex items-center gap-3 p-3 rounded-xl border border-hairline"
+                  [class.opacity-50]="!e.estado">
+                <span class="w-9 h-9 rounded-full bg-surface-soft text-muted font-display font-semibold flex items-center justify-center shrink-0">
+                  {{ e.nombreVisible.charAt(0) }}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-ink truncate">{{ e.nombreVisible }} {{ e.apellido }}</p>
+                  <p class="text-xs text-muted truncate">{{ e.puesto || e.email }}</p>
+                </div>
+                @if (esDueno) {
+                  <button (click)="agregar(e)" [disabled]="procesando() === e.id"
+                    class="btn btn-secondary btn-sm shrink-0">
+                    + Agregar
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+</div>

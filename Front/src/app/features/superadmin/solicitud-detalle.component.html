@@ -10,8 +10,9 @@
     <!-- Encabezado + acciones -->
     <div class="flex flex-wrap items-start justify-between gap-4 mt-2 mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-ink tracking-tight">{{ solicitud()!.empresaNombre }}</h1>
-        <div class="mt-2 flex items-center gap-2">
+        <span class="eyebrow">Solicitud de alta</span>
+        <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">{{ solicitud()!.empresaNombre }}</h1>
+        <div class="mt-2.5 flex items-center gap-2">
           <span class="badge badge-warning">{{ solicitud()!.estadoCuenta }}</span>
           <span class="text-sm text-muted">Solicitado el {{ solicitud()!.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>

@@ -1,0 +1,51 @@
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <a routerLink="/app/mesas" class="text-sm text-primary hover:text-primary-active">← Volver a mesas</a>
+    <span class="eyebrow block mt-3">{{ esEdicion() ? 'Editar' : 'Alta' }}</span>
+    <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">
+      {{ esEdicion() ? 'Editar mesa' : 'Nueva mesa' }}
+    </h1>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 sm:p-8 space-y-6">
+    <div class="grid sm:grid-cols-2 gap-5">
+      <div>
+        <label class="label">Número <span class="text-error">*</span></label>
+        <input type="text" inputmode="numeric" formControlName="numero" class="input"
+          (input)="soloNumeros()"
+          [class.input-error]="f['numero'].invalid && f['numero'].touched" placeholder="4" />
+        @if (f['numero'].invalid && f['numero'].touched) {
+          <p class="field-error">Ingresá un número mayor a 0</p>
+        }
+      </div>
+      <div>
+        <label class="label">Sucursal <span class="text-error">*</span></label>
+        <select formControlName="sucursalId" class="input"
+          [class.input-error]="f['sucursalId'].invalid && f['sucursalId'].touched">
+          <option [ngValue]="null" disabled>Elegí una sucursal</option>
+          @for (s of sucursales(); track s.id) {
+            <option [ngValue]="s.id">{{ s.nombre }}</option>
+          }
+        </select>
+        @if (f['sucursalId'].invalid && f['sucursalId'].touched) {
+          <p class="field-error">Elegí una sucursal</p>
+        }
+      </div>
+    </div>
+
+    <div>
+      <label class="label">Descripción</label>
+      <input type="text" formControlName="descripcion" class="input"
+        placeholder="Ej: Junto a la ventana (opcional)" />
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
+        @if (loading()) { Guardando... } @else { Guardar }
+      </button>
+      <a routerLink="/app/mesas" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</div>

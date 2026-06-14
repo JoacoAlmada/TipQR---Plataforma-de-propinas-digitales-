@@ -67,6 +67,26 @@ public class EmailService {
         enviar(destinatario, titulo + " — TipQR", html, "resultado de validación");
     }
 
+    /**
+     * Da la bienvenida a un empleado recién creado con su contraseña temporal.
+     */
+    public void enviarBienvenidaEmpleado(String destinatario, String nombre, String passwordTemporal) {
+        String html = """
+                <div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#040b15">
+                  <h2 style="color:#640000">TipQR</h2>
+                  <p>Hola %s,</p>
+                  <p>Se creó tu cuenta de empleado en TipQR. Ya podés ingresar con:</p>
+                  <p style="background:#f3ece3;padding:12px 16px;border-radius:10px">
+                    <strong>Email:</strong> %s<br>
+                    <strong>Contraseña temporal:</strong> %s
+                  </p>
+                  <p style="color:#6b6266;font-size:13px">Te recomendamos cambiarla al ingresar.</p>
+                </div>
+                """.formatted(nombre, destinatario, passwordTemporal);
+
+        enviar(destinatario, "Tu cuenta de empleado — TipQR", html, "bienvenida de empleado");
+    }
+
     private void enviar(String destinatario, String asunto, String html, String concepto) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

@@ -35,11 +35,7 @@ export class LoginComponent {
 
     this.auth.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
-        if (res.rol === 'SUPERADMIN') {
-          this.router.navigate(['/superadmin']);
-        } else {
-          this.router.navigate(res.rol === 'EMPLEADO' ? ['/app/empleado'] : ['/app/dashboard']);
-        }
+        this.router.navigate([this.destinoPorRol(res.rol)]);
       },
       error: (err) => {
         this.loading = false;
@@ -49,5 +45,14 @@ export class LoginComponent {
           : 'Email o contraseña incorrectos';
       }
     });
+  }
+
+  private destinoPorRol(rol: string): string {
+    switch (rol) {
+      case 'SUPERADMIN': return '/superadmin';
+      case 'ENCARGADO':  return '/app/encargado';
+      case 'EMPLEADO':   return '/app/empleado';
+      default:           return '/app/dashboard';
+    }
   }
 }

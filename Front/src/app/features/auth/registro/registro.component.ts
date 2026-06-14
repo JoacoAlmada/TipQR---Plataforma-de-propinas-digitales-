@@ -44,6 +44,12 @@ export class RegistroComponent implements AfterViewInit {
   subiendoDoc = signal<string | null>(null);
   private pollingSub?: Subscription;
 
+  readonly pasosInfo = [
+    { n: 1, titulo: 'Tus datos', desc: 'Creá tu cuenta de administrador.' },
+    { n: 2, titulo: 'Tu comercio', desc: 'Contanos sobre tu negocio.' },
+    { n: 3, titulo: 'Documentación', desc: 'Adjuntá los documentos de validación.' }
+  ];
+
   readonly tiposDoc: { tipo: TipoDocumento; label: string; accept: string; hint: string }[] = [
     { tipo: 'DNI_FRENTE', label: 'DNI — Frente', accept: 'image/png,image/jpeg', hint: 'Imagen JPG o PNG' },
     { tipo: 'DNI_DORSO', label: 'DNI — Dorso', accept: 'image/png,image/jpeg', hint: 'Imagen JPG o PNG' },

@@ -1,0 +1,44 @@
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <a routerLink="/app/sucursales" class="text-sm text-primary hover:text-primary-active">← Volver a sucursales</a>
+    <h1 class="text-3xl font-bold text-ink tracking-tight mt-2">
+      {{ esEdicion() ? 'Editar sucursal' : 'Nueva sucursal' }}
+    </h1>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 space-y-5">
+    <div>
+      <label class="label">Nombre <span class="text-error">*</span></label>
+      <input type="text" formControlName="nombre" class="input"
+        [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
+        placeholder="Ej: Sucursal Centro" />
+      @if (f['nombre'].invalid && f['nombre'].touched) {
+        <p class="field-error">El nombre es obligatorio (máx. 120 caracteres)</p>
+      }
+    </div>
+
+    <div>
+      <label class="label">Dirección</label>
+      <input type="text" formControlName="direccion" class="input"
+        [class.input-error]="f['direccion'].invalid && f['direccion'].touched"
+        placeholder="Calle y número" />
+    </div>
+
+    <div>
+      <label class="label">Teléfono</label>
+      <input type="text" inputmode="numeric" formControlName="telefono" class="input"
+        (input)="soloNumeros()"
+        [class.input-error]="f['telefono'].invalid && f['telefono'].touched"
+        placeholder="3510000000" />
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
+        @if (loading()) { Guardando... } @else { Guardar }
+      </button>
+      <a routerLink="/app/sucursales" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</div>

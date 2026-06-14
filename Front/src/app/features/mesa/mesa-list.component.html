@@ -1,0 +1,74 @@
+<div>
+  <!-- Encabezado -->
+  <div class="flex items-end justify-between mb-7 gap-4 flex-wrap">
+    <div>
+      <span class="eyebrow">Gestión</span>
+      <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">Mesas</h1>
+      <p class="mt-1.5 text-sm text-muted">Mesas de cada sucursal, para asociar a las propinas</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <select class="input w-48" (change)="onFiltro($any($event.target).value)">
+        <option value="">Todas las sucursales</option>
+        @for (s of sucursales(); track s.id) {
+          <option [value]="s.id">{{ s.nombre }}</option>
+        }
+      </select>
+      @if (esDueno) {
+        <a routerLink="/app/mesas/nueva" class="btn btn-primary whitespace-nowrap">+ Nueva mesa</a>
+      }
+    </div>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando mesas...</div>
+  } @else if (mesas().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">🍽️</div>
+      <p class="mt-4 text-muted text-sm">No hay mesas para mostrar.</p>
+      @if (esDueno) {
+        <a routerLink="/app/mesas/nueva" class="btn btn-primary mt-5">Crear la primera</a>
+      }
+    </div>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (m of mesas(); track m.id) {
+        <div class="card p-5 group transition-all" [class.opacity-60]="!m.estado">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="eyebrow">Mesa</span>
+              <p class="font-display text-5xl font-semibold text-ink leading-none mt-1">{{ m.numero }}</p>
+            </div>
+            @if (m.estado) {
+              <span class="badge badge-success">Activa</span>
+            } @else {
+              <span class="badge badge-muted">Inactiva</span>
+            }
+          </div>
+
+          <p class="mt-4 text-sm text-body min-h-5">{{ m.descripcion || '—' }}</p>
+
+          <div class="mt-3 flex items-center gap-1.5 text-xs text-muted">
+            <span class="text-accent-strong">🏬</span> {{ m.sucursalNombre }}
+          </div>
+
+          @if (esDueno) {
+            <div class="mt-5 pt-4 border-t border-hairline flex items-center gap-3">
+              <a [routerLink]="['/app/mesas', m.id]"
+                 class="text-primary hover:text-primary-active text-xs font-semibold">Editar</a>
+              <button (click)="toggleEstado(m)"
+                class="text-xs font-semibold px-2 py-1 rounded-lg transition-colors ml-auto"
+                [class.text-amber-700]="m.estado"
+                [class.hover:bg-amber-50]="m.estado"
+                [class.text-green-700]="!m.estado"
+                [class.hover:bg-green-50]="!m.estado">
+                {{ m.estado ? 'Desactivar' : 'Activar' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

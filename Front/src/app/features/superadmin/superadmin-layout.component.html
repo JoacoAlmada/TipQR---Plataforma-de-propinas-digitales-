@@ -1,20 +1,20 @@
 <div class="min-h-screen app-bg">
   <!-- Top bar -->
-  <header class="h-16 bg-sidebar text-white">
-    <div class="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-white font-bold text-sm">Tip</span>
-        <span class="text-lg font-bold">TipQR</span>
-        <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/80">Superadmin</span>
+  <header class="surface-dark text-white">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold text-sm">T</span>
+        <span class="font-display text-xl font-semibold tracking-tight">TipQR</span>
+        <span class="ml-2 text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-accent/20 text-accent">Superadmin</span>
       </div>
       <div class="flex items-center gap-4">
-        <span class="text-sm text-white/80 hidden sm:inline">{{ usuario?.nombre }} {{ usuario?.apellido }}</span>
-        <button (click)="logout()" class="text-sm text-white/70 hover:text-white transition-colors">Cerrar sesión</button>
+        <span class="text-sm text-white/75 hidden sm:inline">{{ usuario?.nombre }} {{ usuario?.apellido }}</span>
+        <button (click)="logout()" class="text-sm text-white/60 hover:text-white transition-colors">Cerrar sesión</button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-6 py-8">
+  <main class="max-w-6xl mx-auto px-6 py-10">
     <router-outlet />
   </main>
 </div>

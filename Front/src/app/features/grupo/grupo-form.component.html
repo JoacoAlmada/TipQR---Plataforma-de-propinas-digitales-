@@ -1,0 +1,60 @@
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <a routerLink="/app/grupos" class="text-sm text-primary hover:text-primary-active">← Volver a grupos</a>
+    <span class="eyebrow block mt-3">{{ esEdicion() ? 'Editar' : 'Alta' }}</span>
+    <h1 class="mt-1.5 font-display text-4xl font-semibold text-ink">
+      {{ esEdicion() ? 'Editar grupo' : 'Nuevo grupo de propina' }}
+    </h1>
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 sm:p-8 space-y-6">
+    <div class="grid sm:grid-cols-2 gap-5">
+      <div>
+        <label class="label">Nombre <span class="text-error">*</span></label>
+        <input type="text" formControlName="nombre" class="input"
+          [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
+          placeholder="Ej: Equipo turno noche" />
+        @if (f['nombre'].invalid && f['nombre'].touched) {
+          <p class="field-error">El nombre es obligatorio (máx. 120 caracteres)</p>
+        }
+      </div>
+      <div>
+        <label class="label">Tipo</label>
+        <input type="text" formControlName="tipoGrupo" class="input" list="tipos-grupo"
+          placeholder="Turno, Barra, Salón..." />
+        <datalist id="tipos-grupo">
+          @for (t of tiposSugeridos; track t) { <option [value]="t"></option> }
+        </datalist>
+      </div>
+    </div>
+
+    <div>
+      <label class="label">Sucursal <span class="text-error">*</span></label>
+      <select formControlName="sucursalId" class="input"
+        [class.input-error]="f['sucursalId'].invalid && f['sucursalId'].touched">
+        <option [ngValue]="null" disabled>Elegí una sucursal</option>
+        @for (s of sucursales(); track s.id) {
+          <option [ngValue]="s.id">{{ s.nombre }}</option>
+        }
+      </select>
+      @if (f['sucursalId'].invalid && f['sucursalId'].touched) {
+        <p class="field-error">Elegí una sucursal</p>
+      }
+    </div>
+
+    <div>
+      <label class="label">Descripción</label>
+      <input type="text" formControlName="descripcion" class="input"
+        placeholder="Ej: Mozos y barra del turno noche (opcional)" />
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
+        @if (loading()) { Guardando... } @else { Guardar }
+      </button>
+      <a routerLink="/app/grupos" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</div>

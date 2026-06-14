@@ -1,32 +1,56 @@
-<aside class="w-64 bg-sidebar text-white flex flex-col h-full shrink-0">
+<aside class="w-64 surface-dark text-white flex flex-col h-full shrink-0">
 
-  <!-- Logo -->
-  <div class="p-6 border-b border-white/10">
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/15 font-bold text-sm">Tip</span>
-      <h1 class="text-xl font-bold tracking-tight">TipQR</h1>
+  <!-- Marca -->
+  <div class="p-6">
+    <div class="flex items-center gap-2.5">
+      <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold">T</span>
+      <h1 class="font-display text-xl font-semibold tracking-tight">TipQR</h1>
     </div>
-    <p class="text-sm text-white/70 mt-3">
-      {{ usuario?.nombre }} {{ usuario?.apellido }}
-    </p>
-    <span class="inline-block mt-2 text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/90">
-      {{ usuario?.rol }}
-    </span>
+  </div>
+
+  <!-- Usuario -->
+  <div class="mx-4 mb-4 p-4 rounded-xl bg-white/[0.06] border border-white/10">
+    <div class="flex items-center gap-3">
+      <span class="w-10 h-10 rounded-full bg-primary/30 text-accent font-display font-semibold flex items-center justify-center">
+        {{ (usuario?.nombre || '?').charAt(0) }}
+      </span>
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-white truncate">{{ usuario?.nombre }} {{ usuario?.apellido }}</p>
+        <p class="text-[11px] uppercase tracking-wider text-accent">{{ usuario?.rol }}</p>
+      </div>
+    </div>
   </div>
 
   <!-- Navegación -->
-  <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+  <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+    <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">Navegación</p>
+
     <a [routerLink]="inicio"
-       routerLinkActive="bg-white/15 font-semibold"
-       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/90 hover:bg-white/10 transition-colors">
+       routerLinkActive="bg-white/12 text-white font-semibold"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
       <span class="text-base">🏠</span> Inicio
     </a>
 
-    @if (esAdmin) {
-      <a routerLink="/app/empresa"
-         routerLinkActive="bg-white/15 font-semibold"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/90 hover:bg-white/10 transition-colors">
+    @if (esDueno) {
+      <a routerLink="/app/empresa" routerLinkActive="bg-white/12 text-white font-semibold"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
         <span class="text-base">🏢</span> Mi empresa
+      </a>
+      <a routerLink="/app/sucursales" routerLinkActive="bg-white/12 text-white font-semibold"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
+        <span class="text-base">🏬</span> Sucursales
+      </a>
+      <a routerLink="/app/empleados" routerLinkActive="bg-white/12 text-white font-semibold"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
+        <span class="text-base">👤</span> Empleados
+      </a>
+      <a routerLink="/app/mesas" routerLinkActive="bg-white/12 text-white font-semibold"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
+        <span class="text-base">🍽️</span> Mesas
+      </a>
+      <a routerLink="/app/grupos" routerLinkActive="bg-white/12 text-white font-semibold"
+         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
+        <span class="text-base">👥</span> Grupos
       </a>
     }
   </nav>
@@ -34,8 +58,8 @@
   <!-- Cerrar sesión -->
   <div class="p-4 border-t border-white/10">
     <button (click)="logout()"
-      class="w-full text-left text-sm text-white/70 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
-      Cerrar sesión
+      class="w-full flex items-center gap-3 text-sm text-white/55 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-colors">
+      <span class="text-base">→</span> Cerrar sesión
     </button>
   </div>
 

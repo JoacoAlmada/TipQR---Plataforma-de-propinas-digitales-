@@ -1,43 +1,51 @@
-/* TipQR — sistema de diseño (ver DESIGN.md). Tailwind v4 con tokens en @theme. */
+/* TipQR — design system. Tailwind v4 + tokens en @theme.
+   Dirección: editorial / hospitalidad premium. Paleta bordó + rosa + navy. */
 
 @import 'tailwindcss';
 
 @theme {
   /* Tipografía */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Primario (rojo profundo) */
   --color-primary: #640000;
-  --color-primary-hover: #8a1a1a;
+  --color-primary-hover: #7c1110;
   --color-primary-active: #420001;
   --color-primary-disabled: #c9a8a8;
 
   /* Acento (rosa empolvado) */
   --color-accent: #b67e7d;
+  --color-accent-strong: #9c5f5e;
   --color-accent-soft: #f3e6e5;
 
   /* Estructura oscura (navy casi negro) */
   --color-sidebar: #040b15;
+  --color-ink-deep: #0a121d;
 
   /* Texto */
-  --color-ink: #040b15;
-  --color-body: #3f3a3c;
-  --color-muted: #6b6266;
-  --color-muted-soft: #9c9296;
+  --color-ink: #1c140f;
+  --color-body: #4a423d;
+  --color-muted: #7a6f67;
+  --color-muted-soft: #a99e93;
 
   /* Superficies (crema cálido, nada de blanco puro) */
-  --color-hairline: #e6dccf;
-  --color-canvas: #f3ece3;
-  --color-surface-card: #fdf9f4;
-  --color-surface-soft: #ece3d8;
+  --color-hairline: #e7dccd;
+  --color-canvas: #f4ede2;
+  --color-surface-card: #fdfaf4;
+  --color-surface-soft: #ece1d2;
 
   /* Semánticos */
-  --color-success: #22c55e;
-  --color-success-soft: #dcfce7;
-  --color-error: #ef4444;
-  --color-error-soft: #fee2e2;
-  --color-warning: #f59e0b;
-  --color-warning-soft: #fef3c7;
+  --color-success: #4d7c4f;
+  --color-success-soft: #e2ecdd;
+  --color-error: #c0392b;
+  --color-error-soft: #f7e3e0;
+  --color-warning: #b5832e;
+  --color-warning-soft: #f6ead2;
+
+  /* Sombras cálidas (tinte bordó) */
+  --shadow-soft: 0 1px 2px rgba(66, 0, 1, 0.05), 0 10px 30px -16px rgba(66, 0, 1, 0.18);
+  --shadow-lift: 0 2px 6px rgba(66, 0, 1, 0.08), 0 24px 48px -24px rgba(66, 0, 1, 0.28);
 }
 
 @layer base {
@@ -46,83 +54,103 @@
     font-family: var(--font-sans);
     background-color: var(--color-canvas);
     background-image:
-      radial-gradient(1100px 480px at 100% -8%, rgba(182, 126, 125, 0.12), transparent),
-      radial-gradient(900px 420px at -8% 4%, rgba(100, 0, 0, 0.06), transparent);
+      radial-gradient(1100px 520px at 100% -10%, rgba(182, 126, 125, 0.16), transparent),
+      radial-gradient(820px 420px at -8% 6%, rgba(100, 0, 0, 0.07), transparent);
     background-attachment: fixed;
+  }
+
+  /* Títulos en serif editorial */
+  h1, h2 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: #fdfaf4;
   }
 }
 
 @layer components {
 
+  /* ── Tipografía utilitaria ─────────────────────────── */
+  .font-display { font-family: var(--font-display); font-optical-sizing: auto; }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent-strong;
+  }
+
   /* ── Botones ───────────────────────────────────────── */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-xl
-           text-sm font-semibold transition-colors cursor-pointer
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full
+           text-sm font-semibold transition-all cursor-pointer
            disabled:cursor-not-allowed select-none;
   }
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-hover active:bg-primary-active
+    @apply bg-primary text-[#fdfaf4] hover:bg-primary-hover active:bg-primary-active
            disabled:bg-primary-disabled disabled:hover:bg-primary-disabled;
+    box-shadow: 0 1px 2px rgba(66, 0, 1, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
+  .btn-primary:hover { box-shadow: 0 4px 16px -4px rgba(66, 0, 1, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
   .btn-secondary {
-    @apply bg-surface-card text-ink border border-hairline hover:border-muted-soft;
+    @apply bg-surface-card text-ink border border-hairline hover:border-accent hover:text-primary;
   }
-  .btn-ghost {
-    @apply text-primary hover:bg-primary/5;
-  }
-  .btn-accent {
-    @apply bg-accent text-ink hover:bg-amber-500;
-  }
-  .btn-danger {
-    @apply bg-error text-white hover:bg-red-600;
-  }
-  .btn-sm {
-    @apply h-8 px-3.5 rounded-lg text-[13px] gap-1.5;
-  }
+  .btn-ghost { @apply text-primary hover:bg-primary/5; }
+  .btn-accent { @apply bg-accent text-[#2a1110] hover:bg-accent-strong hover:text-[#fdfaf4]; }
+  .btn-danger { @apply bg-error text-white hover:brightness-110; }
+  .btn-sm { @apply h-9 px-4 text-[13px] gap-1.5; }
 
   /* ── Tarjetas ──────────────────────────────────────── */
   .card {
-    @apply bg-surface-card rounded-2xl border border-hairline shadow-sm;
+    @apply bg-surface-card rounded-2xl border border-hairline;
+    box-shadow: var(--shadow-soft);
   }
   .card-hover {
-    @apply transition-all hover:border-primary/40 hover:shadow-md;
+    @apply transition-all duration-300 hover:-translate-y-0.5;
   }
+  .card-hover:hover { box-shadow: var(--shadow-lift); border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); }
 
   /* ── Formularios ───────────────────────────────────── */
-  .label {
-    @apply block text-[13px] font-medium text-body mb-1.5;
-  }
+  .label { @apply block text-[12px] font-semibold uppercase tracking-wider text-muted mb-1.5; }
   .input {
-    @apply w-full h-[42px] px-3.5 rounded-xl border border-hairline bg-surface-card text-ink text-sm
+    @apply w-full h-11 px-4 rounded-xl border border-hairline bg-surface-card text-ink text-sm
            outline-none transition placeholder:text-muted-soft
            focus:border-primary focus:ring-4 focus:ring-primary/10;
   }
-  .input-error {
-    @apply border-error focus:border-error focus:ring-error/10;
-  }
-  .field-error {
-    @apply text-error text-xs mt-1;
-  }
+  .input-error { @apply border-error focus:border-error focus:ring-error/10; }
+  .field-error { @apply text-error text-xs mt-1.5; }
 
   /* ── Badges / estados ──────────────────────────────── */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
+           uppercase tracking-wide;
   }
-  .badge-success { @apply bg-success-soft text-green-700; }
+  .badge-success { @apply bg-success-soft text-[#3a5f3c]; }
   .badge-muted   { @apply bg-surface-soft text-muted; }
-  .badge-warning { @apply bg-warning-soft text-amber-700; }
+  .badge-warning { @apply bg-warning-soft text-[#8a6320]; }
   .badge-accent  { @apply bg-accent-soft text-[#7d2b29]; }
 
   /* ── Alertas ───────────────────────────────────────── */
   .alert-error {
-    @apply px-4 py-3 rounded-xl bg-error-soft border border-red-200 text-red-700 text-sm;
+    @apply px-4 py-3 rounded-xl bg-error-soft border border-[#e6c4bf] text-[#9a2e22] text-sm;
+  }
+
+  /* ── Superficies oscuras (navy) con textura ────────── */
+  .surface-dark {
+    background-color: var(--color-sidebar);
+    background-image:
+      radial-gradient(600px 300px at 85% -10%, rgba(182, 126, 125, 0.16), transparent),
+      radial-gradient(520px 280px at 10% 110%, rgba(100, 0, 0, 0.35), transparent);
   }
 
   /* Fondo decorativo de las páginas autenticadas */
   .app-bg {
     background-color: var(--color-canvas);
     background-image:
-      radial-gradient(900px 420px at 100% -10%, rgba(182, 126, 125, 0.14), transparent),
-      radial-gradient(700px 360px at -5% 0%, rgba(100, 0, 0, 0.06), transparent);
+      radial-gradient(900px 440px at 100% -10%, rgba(182, 126, 125, 0.16), transparent),
+      radial-gradient(700px 380px at -5% 0%, rgba(100, 0, 0, 0.06), transparent);
   }
+
+  /* Regla decorativa fina */
+  .rule-accent { @apply h-px w-full bg-gradient-to-r from-accent/50 to-transparent; }
 }

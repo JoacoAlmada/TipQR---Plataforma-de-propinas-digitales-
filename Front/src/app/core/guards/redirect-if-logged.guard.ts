@@ -9,5 +9,9 @@ export const redirectIfLoggedGuard: CanActivateFn = () => {
   if (!auth.isLoggedIn()) return true;
 
   const rol = auth.getUsuario()?.rol;
-  return router.createUrlTree(rol === 'EMPLEADO' ? ['/app/empleado'] : ['/app/dashboard']);
+  const destino = rol === 'SUPERADMIN' ? '/superadmin'
+    : rol === 'ENCARGADO' ? '/app/encargado'
+    : rol === 'EMPLEADO' ? '/app/empleado'
+    : '/app/dashboard';
+  return router.createUrlTree([destino]);
 };
