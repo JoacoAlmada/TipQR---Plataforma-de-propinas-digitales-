@@ -11,6 +11,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'propina/:codigo',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'superadmin/solicitudes/:id',
     renderMode: RenderMode.Client
   },

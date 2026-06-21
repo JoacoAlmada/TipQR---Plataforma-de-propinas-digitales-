@@ -28,9 +28,13 @@ El sistema **no** funciona como billetera virtual ni custodia dinero. El procesa
 | Base de datos | PostgreSQL 16 |
 | Autenticación | Spring Security 6 + JWT (jjwt, HS256, stateless) |
 | ORM | Spring Data JPA + Hibernate |
+| Email | Spring Mail (SMTP) — verificación de cuenta y notificaciones |
+| Captcha | Google reCAPTCHA v2 (registro) |
+| Configuración | Variables de entorno vía `.env` (spring-dotenv, gitignored) |
 | Documentación API | Swagger / OpenAPI (springdoc) |
 | Pagos | Mercado Pago Checkout Pro (ambiente de prueba) + Webhooks |
-| Testing | JUnit 5 + Mockito (95 tests unitarios), H2 en memoria |
+| Testing | JUnit 5 + Mockito (131 tests unitarios), H2 en memoria |
+| Diseño | Design system propio (tipografía Fraunces + Hanken Grotesk, paleta bordó/rosa/navy) |
 | Utilidades | Lombok, librería QR |
 
 ---
@@ -41,21 +45,37 @@ Funcionalidades efectivamente implementadas hasta la fecha:
 
 ### ✅ Autenticación y estructura base (Sprint 1)
 - Login con JWT stateless (HS256) y BCrypt para el hash de contraseñas.
-- Control de acceso por rol (`DUENO`, `ENCARGADO`, `EMPLEADO`) con `@PreAuthorize` en el backend y *guards* + interceptor en el frontend.
-- Manejo centralizado de errores de seguridad (401 sin token, 403 sin permiso) con respuestas JSON.
-- Frontend base: pantalla de login, layout con sidebar, dashboards diferenciados para administrador y empleado.
+- Control de acceso por rol (`SUPERADMIN`, `DUENO`, `ENCARGADO`, `EMPLEADO`) con `@PreAuthorize` en el backend y *guards* + interceptor en el frontend.
+- Manejo centralizado de errores con cuerpo uniforme (`ErrorResponse`): 400, 401, 403, 404, 409.
+- Frontend base: layout con sidebar, dashboards diferenciados por rol.
 - Las 16 entidades JPA del dominio modeladas y mapeadas.
 
-### ✅ Gestión de empresa — ABM completo (Sprint 2)
-- CRUD de empresa de punta a punta (backend + frontend): listar, ver, crear, editar y activar/desactivar.
-- Validaciones de datos (nombre obligatorio, formato de CUIT, email) y control de CUIT duplicado.
-- Listado y formulario en el frontend con validaciones reactivas.
+### ✅ Registro self-service con validación (onboarding)
+- **Stepper de 3 pasos**: datos del usuario (con reCAPTCHA y verificación de email real por SMTP), datos del comercio, y carga de documentos (DNI frente/dorso y selfie como imagen, constancia AFIP como PDF).
+- Estados de cuenta: `CREADA → VERIFICADA → PENDIENTE_VALIDACION → APROBADA / RECHAZADA`. El login pleno requiere `APROBADA`.
+- Validación de unicidad de email, CUIT y DNI.
+
+### ✅ Panel del superadmin
+- Rol `SUPERADMIN` único (sembrado). Revisa las solicitudes de alta pendientes con todos los datos y **previsualiza los documentos** (imágenes y PDF) sin descargarlos.
+- Aprueba o rechaza (con motivo); en ambos casos se notifica al dueño por email.
+
+### ✅ Gestión operativa — ABM completo (Sprint 2)
+Todo con **aislamiento multi-tenant** (cada dueño accede solo a los datos de su empresa) y verificado de punta a punta:
+- **Empresa** (Mi empresa): ver / editar / activar-desactivar, CUIT único.
+- **Sucursales**: ABM, nombre único por empresa, no se desactiva con empleados activos.
+- **Empleados**: ABM con alta automática de su usuario (rol EMPLEADO + contraseña temporal por email), filtrable por sucursal.
+- **Mesas**: ABM, número único por sucursal.
+- **Grupos de propina**: ABM, nombre único por sucursal.
+- **Asignación de empleados a grupos**: relación N:N (solo empleados de la misma sucursal, sin duplicar).
+- **Panel del encargado**: un empleado puede marcarse como encargado; ve en solo lectura los empleados, mesas y grupos de su sucursal.
+
+### ✅ Diseño
+- Rediseño editorial completo de toda la interfaz (tipografía Fraunces + Hanken Grotesk, paleta bordó/rosa/navy, superficies crema) con un design system propio en `styles.css`.
 
 ### ✅ Calidad
-- **95 tests unitarios** (JUnit 5 + Mockito) cubriendo seguridad, servicios, controladores, entidades y DTOs.
+- **131 tests unitarios** (JUnit 5 + Mockito) cubriendo seguridad, servicios, controladores, entidades y DTOs.
 
-### 🚧 En desarrollo / próximos sprints
-- ABM de sucursales, empleados, mesas y grupos de propina (Sprint 2).
+### 🚧 Próximos sprints
 - Generación de QR, pantalla pública de propina, órdenes e integración con Mercado Pago (Sprint 3).
 - Conciliación de pagos, distribución grupal, dashboards y reportes (Sprint 4).
 - Comunicaciones internas y agentes de IA (Sprint 5).
@@ -118,7 +138,7 @@ USUARIO
 ### Entidades
 
 #### Usuario
-Persona que accede al sistema (dueño, encargado o empleado).
+Persona que accede al sistema (superadmin, dueño, encargado o empleado).
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -126,10 +146,32 @@ Persona que accede al sistema (dueño, encargado o empleado).
 | nombre | String | Nombre del usuario |
 | apellido | String | Apellido del usuario |
 | email | String | Email único |
-| password | String | Contraseña encriptada |
-| rol | Enum | DUENO, ENCARGADO, EMPLEADO |
+| password | String | Contraseña encriptada (BCrypt) |
+| telefono | String | Teléfono |
+| cuit | String | CUIT (único) |
+| dni | String | DNI (único) |
+| rol | Enum | SUPERADMIN, DUENO, ENCARGADO, EMPLEADO |
+| estadoCuenta | Enum | CREADA, VERIFICADA, PENDIENTE_VALIDACION, APROBADA, RECHAZADA |
+| emailVerificado | Boolean | Si verificó su email |
+| emailToken | String | Token de verificación / registro (nullable) |
+| empresa_id | Long | FK → Empresa (nullable; el superadmin no tiene) |
 | estado | Boolean | Activo/Inactivo |
 | fechaCreacion | LocalDateTime | Fecha de alta |
+
+**Relaciones:** `Usuario N → 1 Empresa`, `Usuario 1 → 1 Empleado`
+
+#### DocumentoRegistro
+Documento adjunto por el dueño en el registro (DNI frente/dorso, selfie, constancia AFIP). El binario se guarda en la base.
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| id | Long | PK |
+| usuario_id | Long | FK → Usuario |
+| tipo | Enum | DNI_FRENTE, DNI_DORSO, SELFIE, CONSTANCIA_AFIP |
+| nombreArchivo | String | Nombre original del archivo |
+| contentType | String | Tipo MIME (image/* o application/pdf) |
+| datos | byte[] | Contenido binario |
+| fechaCarga | LocalDateTime | Fecha de carga |
 
 ---
 
@@ -139,9 +181,13 @@ Comercio principal registrado en la plataforma.
 | Campo | Tipo | Descripción |
 |---|---|---|
 | id | Long | PK |
-| nombre | String | Nombre del comercio |
+| nombre | String | Razón social / nombre del comercio |
+| nombreFantasia | String | Nombre de fantasía (opcional) |
 | rubro | String | Rubro del negocio |
-| cuit | String | CUIT del comercio |
+| cuit | String | CUIT del comercio (único) |
+| provincia | String | Provincia |
+| calle | String | Calle |
+| numeracion | String | Numeración |
 | emailContacto | String | Email de contacto |
 | telefono | String | Teléfono |
 | estado | Boolean | Activo/Inactivo |
@@ -610,6 +656,12 @@ Base URL: `http://localhost:8080`. Todos los endpoints (excepto los públicos) r
 |---|---|---|
 | `GET` | `/api/health` | Health check del servicio |
 | `POST` | `/api/auth/login` | Login. Devuelve token JWT + datos del usuario |
+| `POST` | `/api/registro/paso1` | Alta del usuario + captcha + envío de email de verificación |
+| `GET` | `/api/registro/verificar?token=` | Verifica el email (link del correo) |
+| `GET` | `/api/registro/estado?token=` | Estado del registro (polling del wizard) |
+| `POST` | `/api/registro/paso2?token=` | Datos del comercio |
+| `POST` | `/api/registro/documentos?token=&tipo=` | Subida de documento (multipart) |
+| `POST` | `/api/registro/finalizar?token=` | Finaliza → cuenta en PENDIENTE_VALIDACION |
 | `GET` | `/swagger-ui.html` | Documentación interactiva OpenAPI |
 
 ### Perfil (usuario autenticado)
@@ -620,24 +672,64 @@ Base URL: `http://localhost:8080`. Todos los endpoints (excepto los públicos) r
 | `GET` | `/api/admin/perfil` | `DUENO`, `ENCARGADO` |
 | `GET` | `/api/empleado/perfil` | `EMPLEADO` |
 
-### Empresas
+> Todas las entidades operativas están **acotadas a la empresa del usuario autenticado** (multi-tenant): un recurso de otra empresa responde `404`. La lectura es para `DUENO` y `ENCARGADO`; la escritura, solo `DUENO`.
 
-| Método | Endpoint | Rol requerido | Descripción |
-|---|---|---|---|
-| `GET` | `/api/empresas` | `DUENO`, `ENCARGADO` | Listar empresas |
-| `GET` | `/api/empresas/{id}` | `DUENO`, `ENCARGADO` | Ver detalle |
-| `POST` | `/api/empresas` | `DUENO` | Crear empresa |
-| `PUT` | `/api/empresas/{id}` | `DUENO` | Editar empresa |
-| `PATCH` | `/api/empresas/{id}/estado?estado=true\|false` | `DUENO` | Activar / desactivar |
+### Mi empresa
 
-Los errores se devuelven con un cuerpo uniforme: `{ "status": 409, "error": "...", "timestamp": "..." }` (404 recurso inexistente, 409 CUIT duplicado, 400 validación, 401 sin token, 403 sin permiso).
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/empresas/mia` | Empresa del usuario |
+| `GET` / `PUT` | `/api/empresas/{id}` | Ver / editar (propia) |
+| `PATCH` | `/api/empresas/{id}/estado?estado=` | Activar / desactivar |
+
+### Sucursales · Mesas · Grupos de propina
+
+Mismo patrón ABM (`GET` lista con filtro `?sucursalId=`, `GET /{id}`, `POST`, `PUT /{id}`, `PATCH /{id}/estado`):
+
+| Recurso | Base |
+|---|---|
+| Sucursales | `/api/sucursales` |
+| Mesas | `/api/mesas` |
+| Grupos de propina | `/api/grupos-propina` |
+
+### Empleados
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/empleados?sucursalId=` | Listar (filtrable por sucursal) |
+| `POST` | `/api/empleados` | Crear (alta automática de usuario + contraseña temporal) |
+| `PUT` | `/api/empleados/{id}` | Editar |
+| `PATCH` | `/api/empleados/{id}/estado?estado=` | Activar / desactivar |
+| `PATCH` | `/api/empleados/{id}/encargado?valor=` | Marcar / quitar encargado |
+| `GET` | `/api/empleados/mi-sucursal` | Sucursal del usuario logueado (panel del encargado) |
+
+### Miembros de un grupo de propina
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/grupos-propina/{id}/empleados` | Listar miembros |
+| `POST` | `/api/grupos-propina/{id}/empleados` | Agregar empleado (de la misma sucursal) |
+| `DELETE` | `/api/grupos-propina/{id}/empleados/{empleadoId}` | Remover empleado |
+
+### Superadmin (`SUPERADMIN`)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/superadmin/solicitudes` | Solicitudes de alta pendientes |
+| `GET` | `/api/superadmin/solicitudes/{id}` | Detalle (datos + documentos) |
+| `GET` | `/api/superadmin/documentos/{docId}` | Descargar / previsualizar documento |
+| `POST` | `/api/superadmin/solicitudes/{id}/aprobar` | Aprobar (+ email) |
+| `POST` | `/api/superadmin/solicitudes/{id}/rechazar?motivo=` | Rechazar (+ email) |
+
+Los errores se devuelven con un cuerpo uniforme: `{ "status": 409, "error": "...", "timestamp": "..." }` (404 inexistente/ajeno, 409 duplicado, 400 validación, 401 sin token, 403 sin permiso).
 
 ### Roles
 
 | Rol | Acceso |
 |---|---|
-| `DUENO` | Acceso total: administración y escritura sobre todas las entidades |
-| `ENCARGADO` | Acceso administrativo de lectura/operación, sin operaciones críticas de alta/baja de empresa |
+| `SUPERADMIN` | Dueño del producto: valida las altas de comercios. Único, sembrado. |
+| `DUENO` | Acceso total a su empresa: administración y escritura sobre todas sus entidades |
+| `ENCARGADO` | Panel de solo lectura de su sucursal (empleados, mesas, grupos) |
 | `EMPLEADO` | Panel propio: sus propinas, mesas y notificaciones |
 
 ---
@@ -648,7 +740,7 @@ Los errores se devuelven con un cuerpo uniforme: `{ "status": 409, "error": "...
 |---|---|---|---|
 | Sprint 0 | 14/05 – 18/05 | Entorno, repositorio, BD y estructura inicial | ✅ Completado |
 | Sprint 1 | 19/05 – 01/06 | Login, roles y estructura base frontend/backend | ✅ Completado |
-| Sprint 2 | 02/06 – 15/06 | ABM empresa, sucursales, empleados, mesas y grupos de propina | 🚧 En curso |
+| Sprint 2 | 02/06 – 15/06 | ABM empresa, sucursales, empleados, mesas y grupos + onboarding, superadmin y panel encargado | ✅ Completado |
 | Sprint 3 | 16/06 – 29/06 | QR, pantalla pública, órdenes de propina e integración Mercado Pago | ⏳ Pendiente |
 | Sprint 4 | 30/06 – 13/07 | Conciliación, distribución grupal, dashboards y reportes | ⏳ Pendiente |
 | Sprint 5 | 14/07 – 20/07 | Comunicaciones internas, agentes IA, testing y demo final | ⏳ Pendiente |
@@ -673,11 +765,15 @@ TipQR/
 ├── Front/                      # Angular 21 — Interfaz web
 │   └── src/app/
 │       ├── core/               # Servicios, guards, interceptores, modelos
-│       ├── features/           # Login, dashboards, ABM empresa
+│       ├── features/           # auth (login/registro), dashboards, empresa,
+│       │                       #   sucursal, empleado, mesa, grupo,
+│       │                       #   encargado, superadmin, landing
 │       └── shared/             # Layout y componentes reutilizables
 │
 └── docker-compose.yml          # PostgreSQL + pgAdmin
 ```
+
+> El design system (tokens de color, tipografía y clases reutilizables `.btn`/`.card`/`.input`/`.badge`/`.eyebrow`) vive en `Front/src/styles.css`.
 
 ---
 
@@ -718,12 +814,13 @@ cp .env.example .env
 - Health check: `GET http://localhost:8080/api/health`
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 
-> Las credenciales se configuran con variables de entorno en el archivo `.env` (excluido del repositorio). Ver `.env.example` como referencia.
+> Las credenciales (DB, SMTP, reCAPTCHA, JWT) se configuran con variables de entorno en el archivo `Back/.env` (excluido del repositorio). Ver `.env.example` como referencia. El registro real necesita credenciales SMTP y claves de reCAPTCHA v2.
 
-Al iniciar por primera vez se crea automáticamente un usuario administrador de prueba:
+Al iniciar por primera vez se crean automáticamente usuarios de prueba:
 
 | Email | Password | Rol |
 |---|---|---|
+| `superadmin@tipqr.com` | `superadmin2026` | `SUPERADMIN` |
 | `admin@tipqr.com` | `tipqr2026` | `DUENO` |
 
 ### 3. Frontend
@@ -743,7 +840,7 @@ cd Back
 ./mvnw test
 ```
 
-Ejecuta los 95 tests unitarios (JUnit 5 + Mockito) sobre una base H2 en memoria.
+Ejecuta los 131 tests unitarios (JUnit 5 + Mockito) sobre una base H2 en memoria.
 
 ### Bajar los servicios
 

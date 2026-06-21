@@ -24,6 +24,7 @@ public class MesaService {
     private final MesaRepository mesaRepository;
     private final SucursalRepository sucursalRepository;
     private final UsuarioRepository usuarioRepository;
+    private final QrService qrService;
 
     @Transactional(readOnly = true)
     public List<MesaResponse> listar(String emailUsuario, Long sucursalId) {
@@ -54,13 +55,17 @@ public class MesaService {
                     "Ya existe la mesa " + request.getNumero() + " en la sucursal " + sucursal.getNombre());
         }
 
-        Mesa mesa = Mesa.builder()
+        Mesa mesa = mesaRepository.save(Mesa.builder()
                 .sucursal(sucursal)
                 .numero(request.getNumero())
                 .descripcion(request.getDescripcion())
                 .estado(true)
-                .build();
-        return MesaResponse.fromEntity(mesaRepository.save(mesa));
+                .build());
+
+        // Alta automática del código QR de la mesa.
+        qrService.generarParaMesa(mesa);
+
+        return MesaResponse.fromEntity(mesa);
     }
 
     @Transactional

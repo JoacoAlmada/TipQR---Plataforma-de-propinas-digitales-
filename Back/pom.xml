@@ -23,6 +23,7 @@
 		<modelmapper.version>3.2.1</modelmapper.version>
 		<jjwt.version>0.12.6</jjwt.version>
 		<lombok.version>1.18.38</lombok.version>
+		<zxing.version>3.5.3</zxing.version>
 	</properties>
 
 	<dependencies>
@@ -111,6 +112,18 @@
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
 			<version>${modelmapper.version}</version>
+		</dependency>
+
+		<!-- ── Generación de códigos QR ────────────────────────────── -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>${zxing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>${zxing.version}</version>
 		</dependency>
 
 		<!-- ── Lombok ──────────────────────────────────────────────── -->

@@ -34,6 +34,7 @@ class EmpleadoServiceTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private EmailService emailService;
+    @Mock private QrService qrService;
     @InjectMocks private EmpleadoService empleadoService;
 
     private static final String EMAIL = "dueno@tipqr.com";

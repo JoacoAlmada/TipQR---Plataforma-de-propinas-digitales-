@@ -23,10 +23,12 @@ class EventoOrdenTest {
 
     @Test
     void tiposEventoOrden_sonValidos() {
-        assertEquals(6, TipoEventoOrden.values().length);
+        assertEquals(8, TipoEventoOrden.values().length);
         assertNotNull(TipoEventoOrden.valueOf("ORDEN_CREADA"));
         assertNotNull(TipoEventoOrden.valueOf("PAGO_CONFIRMADO"));
         assertNotNull(TipoEventoOrden.valueOf("ORDEN_PAGADA"));
+        assertNotNull(TipoEventoOrden.valueOf("ORDEN_RECHAZADA"));
+        assertNotNull(TipoEventoOrden.valueOf("ORDEN_CANCELADA"));
         assertNotNull(TipoEventoOrden.valueOf("ORDEN_EXPIRADA"));
         assertNotNull(TipoEventoOrden.valueOf("DISTRIBUCION_GENERADA"));
     }

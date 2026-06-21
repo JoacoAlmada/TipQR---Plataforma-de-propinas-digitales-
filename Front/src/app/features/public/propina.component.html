@@ -1,0 +1,95 @@
+<div class="app-bg min-h-screen flex flex-col items-center justify-center px-5 py-10">
+  <div class="w-full max-w-md">
+
+    <!-- Marca -->
+    <div class="flex items-center justify-center gap-2.5 mb-7">
+      <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold">T</span>
+      <span class="font-display text-xl font-semibold tracking-tight text-ink">TipQR</span>
+    </div>
+
+    @if (estado() === 'cargando') {
+      <div class="card p-10 text-center text-muted-soft text-sm">Cargando…</div>
+    }
+
+    @else if (estado() === 'error') {
+      <div class="card p-10 text-center">
+        <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">✕</div>
+        <p class="mt-4 text-body text-sm">{{ errorMsg() }}</p>
+      </div>
+    }
+
+    @else if (estado() === 'confirmada') {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl">✓</div>
+        <span class="eyebrow mt-5 inline-block">¡Gracias!</span>
+        <h1 class="mt-1.5 font-display text-3xl font-semibold text-ink">
+          Propina de ${{ orden()?.monto }}
+        </h1>
+        <p class="mt-2 text-sm text-muted">
+          Registrada para <span class="font-semibold text-body">{{ destino()?.destinoNombre }}</span>
+          @if (destino()?.sucursalNombre) { · {{ destino()?.sucursalNombre }} }
+        </p>
+
+        <div class="mt-6 rounded-xl bg-surface-soft border border-hairline p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-soft">Código de la orden</p>
+          <p class="mt-1 font-mono text-lg tracking-wider text-ink">{{ orden()?.codigo }}</p>
+        </div>
+
+        <p class="mt-6 text-xs text-muted-soft leading-relaxed">
+          Próximo paso: el pago con Mercado Pago. La integración del pago está en construcción.
+        </p>
+      </div>
+    }
+
+    @else {
+      <!-- Elegir monto -->
+      <div class="card p-7">
+        <div class="text-center">
+          <span class="eyebrow">Dejá tu propina</span>
+          <h1 class="mt-1.5 font-display text-3xl font-semibold text-ink">{{ destino()?.destinoNombre }}</h1>
+          <p class="mt-1.5 text-sm text-muted">
+            {{ destino()?.empresaNombre }}
+            @if (destino()?.sucursalNombre) { · {{ destino()?.sucursalNombre }} }
+          </p>
+        </div>
+
+        @if (errorMsg()) { <div class="alert-error mt-5">{{ errorMsg() }}</div> }
+
+        <div class="mt-6 grid grid-cols-2 gap-3">
+          @for (m of montosSugeridos; track m) {
+            <button type="button" (click)="elegirMonto(m)"
+              class="rounded-xl border py-4 font-display text-2xl font-semibold transition-all"
+              [class.border-primary]="montoSeleccionado() === m"
+              [class.bg-primary]="montoSeleccionado() === m"
+              [class.text-white]="montoSeleccionado() === m"
+              [class.border-hairline]="montoSeleccionado() !== m"
+              [class.text-ink]="montoSeleccionado() !== m"
+              [class.hover:border-primary]="montoSeleccionado() !== m">
+              ${{ m }}
+            </button>
+          }
+        </div>
+
+        <div class="mt-4">
+          <label class="label">Otro monto</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">$</span>
+            <input class="input pl-7" inputmode="numeric" placeholder="Ingresá un monto"
+              [value]="montoLibre()" (input)="onMontoLibre($any($event.target).value)" />
+          </div>
+        </div>
+
+        <button type="button" (click)="confirmar()"
+          [disabled]="montoFinal() <= 0 || estado() === 'enviando'"
+          class="btn btn-primary w-full mt-6 py-3 text-base disabled:opacity-50">
+          @if (estado() === 'enviando') { Registrando… }
+          @else { Dejar ${{ montoFinal() > 0 ? montoFinal() : '' }} de propina }
+        </button>
+
+        <p class="mt-4 text-center text-[11px] text-muted-soft">
+          TipQR no es una billetera. Solo registra y distribuye la propina.
+        </p>
+      </div>
+    }
+  </div>
+</div>

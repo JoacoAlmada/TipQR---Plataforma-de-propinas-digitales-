@@ -1,6 +1,7 @@
 package tipqr.back.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,10 +42,12 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, "/api/ordenes/*/estado").permitAll()
                 .requestMatchers(
                     "/api/health",
                     "/api/auth/**",
                     "/api/registro/**",
+                    "/api/public/**",
                     "/swagger-ui.html",
                     "/swagger-ui/**",
                     "/api-docs/**"

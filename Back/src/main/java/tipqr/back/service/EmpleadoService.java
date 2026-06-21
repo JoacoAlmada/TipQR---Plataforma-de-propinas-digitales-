@@ -36,6 +36,7 @@ public class EmpleadoService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final QrService qrService;
 
     @Transactional(readOnly = true)
     public List<EmpleadoResponse> listar(String emailUsuario, Long sucursalId) {
@@ -89,6 +90,9 @@ public class EmpleadoService {
                 .puesto(request.getPuesto())
                 .estado(true)
                 .build());
+
+        // Alta automática del código QR del empleado.
+        qrService.generarParaEmpleado(empleado);
 
         // Best-effort: si falla el mail, no se cae la creación.
         try {

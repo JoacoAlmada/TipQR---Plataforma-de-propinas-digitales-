@@ -31,6 +31,7 @@ class MesaServiceTest {
     @Mock private MesaRepository mesaRepository;
     @Mock private SucursalRepository sucursalRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private QrService qrService;
     @InjectMocks private MesaService mesaService;
 
     private static final String EMAIL = "dueno@tipqr.com";

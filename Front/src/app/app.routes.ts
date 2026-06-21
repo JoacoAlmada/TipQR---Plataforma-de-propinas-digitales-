@@ -28,6 +28,11 @@ export const routes: Routes = [
       import('./features/auth/verificar-email/verificar-email.component').then(m => m.VerificarEmailComponent)
   },
   {
+    path: 'propina/:codigo',
+    loadComponent: () =>
+      import('./features/public/propina.component').then(m => m.PropinaPublicaComponent)
+  },
+  {
     path: 'superadmin',
     loadComponent: () =>
       import('./features/superadmin/superadmin-layout.component').then(m => m.SuperadminLayoutComponent),
@@ -136,6 +141,11 @@ export const routes: Routes = [
         path: 'grupos/:id/miembros',
         loadComponent: () =>
           import('./features/grupo/grupo-miembros.component').then(m => m.GrupoMiembrosComponent)
+      },
+      {
+        path: 'qr',
+        loadComponent: () =>
+          import('./features/qr/qr-list.component').then(m => m.QrListComponent)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
