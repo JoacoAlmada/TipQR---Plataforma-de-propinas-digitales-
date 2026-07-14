@@ -18,6 +18,24 @@
     <div class="card p-6 mb-6">
       <h2 class="font-display text-lg font-semibold text-ink mb-4">Enviar aviso a los empleados</h2>
       @if (formMsg()) { <div class="alert-error mb-4">{{ formMsg() }}</div> }
+
+      <!-- Agente de IA: redactar a partir de una instrucción informal -->
+      <div class="mb-5 rounded-xl border border-primary/30 bg-primary/[0.04] p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-lg">✨</span>
+          <p class="text-sm font-semibold text-ink">Redactar con IA</p>
+        </div>
+        <p class="text-xs text-muted mb-3">Escribí la idea de forma informal y la IA arma el aviso. Después lo revisás y editás antes de enviar.</p>
+        <textarea rows="2" class="input h-auto py-2.5" placeholder="Ej: recordales al turno noche que mañana entran a las 18"
+          [value]="instruccionIa()" (input)="instruccionIa.set($any($event.target).value)"></textarea>
+        <div class="mt-3 flex items-center gap-3 flex-wrap">
+          <button (click)="redactarIa()" [disabled]="redactando()" class="btn btn-secondary">
+            @if (redactando()) { Generando… } @else { ✨ Redactar con IA }
+          </button>
+          @if (iaMsg()) { <span class="text-xs text-muted">{{ iaMsg() }}</span> }
+        </div>
+      </div>
+
       <div class="space-y-4">
         <div>
           <label class="label">Título</label>

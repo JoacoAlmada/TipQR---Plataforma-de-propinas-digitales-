@@ -10,7 +10,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import tipqr.back.dto.CrearNotificacionRequest;
 import tipqr.back.dto.NotificacionResponse;
+import tipqr.back.dto.RedaccionNotificacionResponse;
+import tipqr.back.dto.RedactarNotificacionRequest;
 import tipqr.back.service.NotificacionService;
+import tipqr.back.service.ia.AgenteNotificacionService;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,7 @@ import java.util.Map;
 public class NotificacionController {
 
     private final NotificacionService notificacionService;
+    private final AgenteNotificacionService agenteNotificacionService;
 
     /** Envía una notificación a los empleados (dueño/encargado). */
     @PostMapping
@@ -30,6 +34,17 @@ public class NotificacionController {
             @AuthenticationPrincipal UserDetails user) {
         int enviados = notificacionService.enviar(request, user.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("enviados", enviados));
+    }
+
+    /**
+     * Redacta un borrador de aviso con el agente de IA a partir de una instrucción informal.
+     * No envía nada: el usuario revisa/edita y confirma con POST /api/notificaciones.
+     */
+    @PostMapping("/redactar-ia")
+    @PreAuthorize("hasAnyRole('DUENO', 'ENCARGADO')")
+    public ResponseEntity<RedaccionNotificacionResponse> redactarIa(
+            @Valid @RequestBody RedactarNotificacionRequest request) {
+        return ResponseEntity.ok(agenteNotificacionService.redactar(request.getInstruccion()));
     }
 
     /** Bandeja de notificaciones del usuario logueado. */

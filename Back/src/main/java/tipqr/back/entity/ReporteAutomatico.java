@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import tipqr.back.entity.enums.TipoReporte;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -34,8 +35,19 @@ public class ReporteAutomatico {
 
     private LocalDate periodoHasta;
 
+    private String titulo;
+
+    /** Resumen en lenguaje natural (lo que redacta el agente). */
     @Column(columnDefinition = "TEXT")
     private String resumenGenerado;
+
+    // Métricas que respaldan el resumen (snapshot al momento de generarlo).
+    private BigDecimal totalRecaudado;
+    private Integer cantidadPropinas;
+    private BigDecimal ticketPromedio;
+
+    /** True si lo redactó el proveedor de IA; false si se usó el resumen local de respaldo. */
+    private boolean generadoPorIa;
 
     @CreationTimestamp
     private LocalDateTime fechaGeneracion;

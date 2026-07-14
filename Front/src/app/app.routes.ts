@@ -168,6 +168,11 @@ export const routes: Routes = [
           import('./features/qr/qr-list.component').then(m => m.QrListComponent)
       },
       {
+        path: 'reportes-ia',
+        loadComponent: () =>
+          import('./features/reportes/reportes-ia.component').then(m => m.ReportesIaComponent)
+      },
+      {
         path: 'notificaciones',
         loadComponent: () =>
           import('./features/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent)

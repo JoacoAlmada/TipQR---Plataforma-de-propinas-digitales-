@@ -21,4 +21,7 @@ public class CrearNotificacionRequest {
 
     /** Si viene, se envía solo a los empleados de esa sucursal; si es null, a toda la empresa. */
     private Long sucursalId;
+
+    /** True si el aviso lo redactó el agente de IA (y el usuario lo confirmó): marca origen AGENTE. */
+    private boolean asistidoPorIa;
 }

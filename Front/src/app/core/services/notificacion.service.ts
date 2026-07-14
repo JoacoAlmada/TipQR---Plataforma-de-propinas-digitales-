@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Notificacion, CrearNotificacionRequest } from '../models/notificacion.model';
+import { Notificacion, CrearNotificacionRequest, RedaccionNotificacion } from '../models/notificacion.model';
 
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
@@ -25,5 +25,10 @@ export class NotificacionService {
   /** Envío de un aviso (dueño/encargado). */
   enviar(request: CrearNotificacionRequest): Observable<{ enviados: number }> {
     return this.http.post<{ enviados: number }>(this.API, request);
+  }
+
+  /** Pide al agente de IA que redacte un borrador a partir de una instrucción informal. */
+  redactarIa(instruccion: string): Observable<RedaccionNotificacion> {
+    return this.http.post<RedaccionNotificacion>(`${this.API}/redactar-ia`, { instruccion });
   }
 }

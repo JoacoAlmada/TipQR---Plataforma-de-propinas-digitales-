@@ -16,4 +16,13 @@ export interface CrearNotificacionRequest {
   categoria?: string | null;
   prioridad?: string | null;
   sucursalId?: number | null;
+  asistidoPorIa?: boolean;
+}
+
+/** Borrador que devuelve el agente de IA a partir de una instrucción informal. */
+export interface RedaccionNotificacion {
+  titulo: string;
+  mensaje: string;
+  categoria: string | null;
+  generadoPorIa: boolean;
 }

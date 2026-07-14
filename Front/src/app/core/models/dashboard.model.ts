@@ -41,3 +41,15 @@ export interface ReportePeriodo {
   cantidadPropinas: number;
   ticketPromedio: number;
 }
+
+/** Reporte generado por el agente de IA. */
+export interface ReporteAutomatico {
+  id: number;
+  titulo: string;
+  contenido: string;
+  totalRecaudado: number | null;
+  cantidadPropinas: number | null;
+  ticketPromedio: number | null;
+  generadoPorIa: boolean;
+  fecha: string | null;
+}

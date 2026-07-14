@@ -7,14 +7,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tipqr.back.dto.HistorialPropinasResponse;
 import tipqr.back.dto.RankingEmpleadoResponse;
+import tipqr.back.dto.ReporteAutomaticoResponse;
 import tipqr.back.dto.ReportePeriodoResponse;
 import tipqr.back.dto.ResumenDuenoResponse;
 import tipqr.back.service.DashboardService;
+import tipqr.back.service.ia.AgenteReporteService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final AgenteReporteService agenteReporteService;
 
     /** Historial de propinas del empleado logueado. */
     @GetMapping("/empleado/propinas")
@@ -58,5 +62,21 @@ public class DashboardController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(dashboardService.reportePeriodo(user.getUsername(), desde, hasta));
+    }
+
+    /** Genera con IA un resumen ejecutivo del estado de propinas y lo guarda. */
+    @PostMapping("/dashboard/reportes-ia")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<ReporteAutomaticoResponse> generarReporteIa(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(agenteReporteService.generar(user.getUsername()));
+    }
+
+    /** Historial de reportes automáticos de la empresa. */
+    @GetMapping("/dashboard/reportes-ia")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<List<ReporteAutomaticoResponse>> listarReportesIa(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(agenteReporteService.listar(user.getUsername()));
     }
 }

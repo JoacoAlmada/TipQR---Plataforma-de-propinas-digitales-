@@ -26,9 +26,16 @@ export class NotificacionesComponent implements OnInit {
   mostrarForm = signal(false);
   titulo = signal('');
   mensaje = signal('');
+  categoria = signal<string | null>(null);
   sucursalId = signal<number | null>(null);
   enviando = signal(false);
   formMsg = signal('');
+
+  // Agente de IA (redactar con IA)
+  instruccionIa = signal('');
+  redactando = signal(false);
+  iaMsg = signal('');
+  asistidoConIa = signal(false);
 
   ngOnInit(): void {
     this.cargar();
@@ -53,6 +60,32 @@ export class NotificacionesComponent implements OnInit {
     });
   }
 
+  /** Pide al agente que redacte un borrador; el usuario lo revisa/edita antes de enviar. */
+  redactarIa(): void {
+    if (!this.instruccionIa().trim()) {
+      this.iaMsg.set('Escribí qué querés avisar.');
+      return;
+    }
+    this.iaMsg.set('');
+    this.redactando.set(true);
+    this.notificacionService.redactarIa(this.instruccionIa()).subscribe({
+      next: (r) => {
+        this.redactando.set(false);
+        this.titulo.set(r.titulo);
+        this.mensaje.set(r.mensaje);
+        this.categoria.set(r.categoria);
+        this.asistidoConIa.set(true);
+        this.iaMsg.set(r.generadoPorIa
+          ? 'Borrador generado con IA. Revisalo y editalo antes de enviar.'
+          : 'Borrador armado automáticamente. Revisalo y editalo antes de enviar.');
+      },
+      error: (err) => {
+        this.redactando.set(false);
+        this.iaMsg.set(err?.error?.error ?? 'No se pudo generar el borrador.');
+      }
+    });
+  }
+
   enviar(): void {
     if (!this.titulo().trim() || !this.mensaje().trim()) {
       this.formMsg.set('Completá el título y el mensaje.');
@@ -61,12 +94,13 @@ export class NotificacionesComponent implements OnInit {
     this.formMsg.set('');
     this.enviando.set(true);
     this.notificacionService.enviar({
-      titulo: this.titulo(), mensaje: this.mensaje(), sucursalId: this.sucursalId()
+      titulo: this.titulo(), mensaje: this.mensaje(), categoria: this.categoria(),
+      sucursalId: this.sucursalId(), asistidoPorIa: this.asistidoConIa()
     }).subscribe({
       next: (r) => {
         this.enviando.set(false);
         this.formMsg.set(`Enviada a ${r.enviados} empleado(s).`);
-        this.titulo.set(''); this.mensaje.set(''); this.sucursalId.set(null);
+        this.resetForm();
         setTimeout(() => { this.mostrarForm.set(false); this.formMsg.set(''); }, 1500);
       },
       error: (err) => {
@@ -74,6 +108,12 @@ export class NotificacionesComponent implements OnInit {
         this.formMsg.set(err?.error?.error ?? 'No se pudo enviar.');
       }
     });
+  }
+
+  private resetForm(): void {
+    this.titulo.set(''); this.mensaje.set(''); this.categoria.set(null);
+    this.sucursalId.set(null); this.instruccionIa.set('');
+    this.iaMsg.set(''); this.asistidoConIa.set(false);
   }
 
   icono(categoria: string | null): string {

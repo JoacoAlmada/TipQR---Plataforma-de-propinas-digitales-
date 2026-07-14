@@ -57,7 +57,7 @@ public class NotificacionService {
                 .mensaje(req.getMensaje().trim())
                 .categoria(req.getCategoria() != null ? req.getCategoria() : CategoriaNotificacion.GENERAL)
                 .prioridad(req.getPrioridad() != null ? req.getPrioridad() : PrioridadNotificacion.MEDIA)
-                .origen(OrigenNotificacion.MANUAL)
+                .origen(req.isAsistidoPorIa() ? OrigenNotificacion.AGENTE : OrigenNotificacion.MANUAL)
                 .build());
 
         int enviados = 0;
