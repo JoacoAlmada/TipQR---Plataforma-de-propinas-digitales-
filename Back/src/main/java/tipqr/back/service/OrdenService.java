@@ -14,7 +14,9 @@ import tipqr.back.entity.enums.TipoEventoOrden;
 import tipqr.back.entity.enums.TipoPropina;
 import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.CodigoQRRepository;
+import tipqr.back.repository.EmpleadoRepository;
 import tipqr.back.repository.EventoOrdenRepository;
+import tipqr.back.repository.GrupoPropinaEmpleadoRepository;
 import tipqr.back.repository.OrdenPropinaRepository;
 
 import java.math.BigDecimal;
@@ -46,6 +48,9 @@ public class OrdenService {
     private final OrdenPropinaRepository ordenRepository;
     private final EventoOrdenRepository eventoRepository;
     private final CodigoQRRepository qrRepository;
+    private final GrupoPropinaEmpleadoRepository miembroRepository;
+    private final EmpleadoRepository empleadoRepository;
+    private final TurnoService turnoService;
 
     @Value("${tipqr.orden.vencimiento-minutos:15}")
     private long vencimientoMinutos;
@@ -93,9 +98,11 @@ public class OrdenService {
     /**
      * Crea una orden a partir de un código QR escaneado (pantalla pública).
      * El destino del QR define el tipo de propina y las asociaciones.
+     * Para QR de MESA: si llega {@code empleadoId} es individual para ese mozo (del turno activo),
+     * si no, se reparte entre el equipo del turno activo.
      */
     @Transactional
-    public OrdenPropina crearDesdeQr(String qrCodigo, BigDecimal monto) {
+    public OrdenPropina crearDesdeQr(String qrCodigo, BigDecimal monto, Long empleadoId) {
         CodigoQR qr = qrRepository.findByCodigo(qrCodigo)
                 .filter(q -> Boolean.TRUE.equals(q.getActivo()))
                 .orElseThrow(() -> new ResourceNotFoundException("Código QR " + qrCodigo + " no encontrado o inactivo"));
@@ -104,13 +111,32 @@ public class OrdenService {
         return switch (destino) {
             case EMPLEADO -> crearOrden(qr.getSucursal(), TipoPropina.INDIVIDUAL, monto,
                     null, qr.getEmpleado(), null);
-            case MESA -> crearOrden(qr.getSucursal(), TipoPropina.INDIVIDUAL, monto,
-                    qr.getMesa(), null, null);
             case GRUPO -> crearOrden(qr.getSucursal(), TipoPropina.GRUPAL, monto,
                     null, null, qr.getGrupoPropina());
+            case MESA -> crearOrdenDeMesa(qr, monto, empleadoId);
             default -> throw new IllegalArgumentException(
                     "El tipo de destino " + destino + " no admite propinas todavía");
         };
+    }
+
+    /**
+     * Propina de mesa: usa el GRUPO ACTIVO del turno de la sucursal.
+     * Con empleadoId → individual a ese mozo (validando que sea del turno activo); sin él → grupal al equipo.
+     */
+    private OrdenPropina crearOrdenDeMesa(CodigoQR qr, BigDecimal monto, Long empleadoId) {
+        GrupoPropina grupoActivo = turnoService.grupoActivo(qr.getSucursal().getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No hay un turno activo en la sucursal; no se puede registrar la propina de la mesa"));
+
+        if (empleadoId != null) {
+            if (!miembroRepository.existsByGrupoPropinaIdAndEmpleadoId(grupoActivo.getId(), empleadoId)) {
+                throw new IllegalArgumentException("El mozo elegido no pertenece al turno activo");
+            }
+            Empleado empleado = empleadoRepository.findById(empleadoId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Empleado", empleadoId));
+            return crearOrden(qr.getSucursal(), TipoPropina.INDIVIDUAL, monto, qr.getMesa(), empleado, null);
+        }
+        return crearOrden(qr.getSucursal(), TipoPropina.GRUPAL, monto, qr.getMesa(), null, grupoActivo);
     }
 
     // ── Transiciones de estado ──────────────────────────────────────────────

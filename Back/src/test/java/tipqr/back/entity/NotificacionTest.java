@@ -46,8 +46,9 @@ class NotificacionTest {
 
     @Test
     void origenNotificacion_sonValidos() {
-        assertEquals(2, OrigenNotificacion.values().length);
+        assertEquals(3, OrigenNotificacion.values().length);
         assertNotNull(OrigenNotificacion.valueOf("MANUAL"));
+        assertNotNull(OrigenNotificacion.valueOf("SISTEMA"));
         assertNotNull(OrigenNotificacion.valueOf("AGENTE"));
     }
 

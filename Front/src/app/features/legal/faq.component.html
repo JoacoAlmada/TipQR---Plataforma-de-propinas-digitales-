@@ -1,0 +1,23 @@
+<app-info-page titulo="Preguntas frecuentes" eyebrow="Ayuda">
+  <div class="space-y-3">
+    @for (p of preguntas; track p.q; let i = $index) {
+      <div class="card overflow-hidden">
+        <button (click)="toggle(i)"
+          class="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-canvas transition-colors">
+          <span class="font-medium text-ink">{{ p.q }}</span>
+          <span class="shrink-0 text-primary text-xl leading-none transition-transform"
+                [class.rotate-45]="abierta() === i">+</span>
+        </button>
+        @if (abierta() === i) {
+          <div class="px-5 pb-5 -mt-1 text-sm text-body leading-relaxed">{{ p.a }}</div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="mt-10 card p-6 text-center">
+    <p class="text-sm text-body">¿No encontraste lo que buscabas?</p>
+    <p class="mt-1 text-xs text-muted-soft">Escribinos y te ayudamos con tu comercio.</p>
+    <a routerLink="/registro" class="btn btn-primary btn-sm mt-4">Crear mi cuenta</a>
+  </div>
+</app-info-page>

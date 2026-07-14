@@ -1,6 +1,35 @@
 <div class="flex h-screen overflow-hidden">
-  <app-sidebar />
-  <main class="flex-1 overflow-y-auto app-bg p-6 md:p-8">
-    <router-outlet />
-  </main>
+
+  <!-- Overlay (solo mobile, cuando el drawer está abierto) -->
+  @if (abierto()) {
+    <div class="fixed inset-0 z-30 bg-black/40 lg:hidden" (click)="cerrar()" aria-hidden="true"></div>
+  }
+
+  <!-- Sidebar: drawer deslizable en mobile, fijo en desktop -->
+  <div class="fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:translate-x-0"
+       [class.translate-x-0]="abierto()"
+       [class.-translate-x-full]="!abierto()">
+    <app-sidebar (navegar)="cerrar()" />
+  </div>
+
+  <!-- Columna principal -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Topbar (solo mobile) -->
+    <header class="lg:hidden flex items-center gap-3 px-4 h-14 surface-dark text-white shrink-0">
+      <button (click)="toggle()" class="p-2 -ml-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Abrir menú">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-primary text-[#fdfaf4] font-display font-semibold text-sm">T</span>
+        <span class="font-display text-lg font-semibold tracking-tight">TipQR</span>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto app-bg p-5 sm:p-6 md:p-8">
+      <router-outlet />
+    </main>
+  </div>
 </div>

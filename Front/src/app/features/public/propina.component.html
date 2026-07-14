@@ -55,40 +55,79 @@
 
         @if (errorMsg()) { <div class="alert-error mt-5">{{ errorMsg() }}</div> }
 
-        <div class="mt-6 grid grid-cols-2 gap-3">
-          @for (m of montosSugeridos; track m) {
-            <button type="button" (click)="elegirMonto(m)"
-              class="rounded-xl border py-4 font-display text-2xl font-semibold transition-all"
-              [class.border-primary]="montoSeleccionado() === m"
-              [class.bg-primary]="montoSeleccionado() === m"
-              [class.text-white]="montoSeleccionado() === m"
-              [class.border-hairline]="montoSeleccionado() !== m"
-              [class.text-ink]="montoSeleccionado() !== m"
-              [class.hover:border-primary]="montoSeleccionado() !== m">
-              ${{ m }}
-            </button>
-          }
-        </div>
-
-        <div class="mt-4">
-          <label class="label">Otro monto</label>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">$</span>
-            <input class="input pl-7" inputmode="numeric" placeholder="Ingresá un monto"
-              [value]="montoLibre()" (input)="onMontoLibre($any($event.target).value)" />
+        @if (esMesa() && destinatarios() && !destinatarios()!.turnoActivo) {
+          <!-- Mesa sin turno abierto -->
+          <div class="mt-6 rounded-xl bg-surface-soft border border-hairline p-5 text-center">
+            <p class="text-sm text-body">En este momento el local no tiene un turno abierto, así que no se puede dejar propina por la mesa.</p>
+            <p class="mt-1 text-xs text-muted-soft">Pedile al personal que abra el turno e intentá de nuevo.</p>
           </div>
-        </div>
+        } @else {
 
-        <button type="button" (click)="confirmar()"
-          [disabled]="montoFinal() <= 0 || estado() === 'enviando'"
-          class="btn btn-primary w-full mt-6 py-3 text-base disabled:opacity-50">
-          @if (estado() === 'enviando') { Registrando… }
-          @else { Dejar ${{ montoFinal() > 0 ? montoFinal() : '' }} de propina }
-        </button>
+          @if (esMesa() && destinatarios()) {
+            <!-- A quién va la propina -->
+            <div class="mt-6">
+              <p class="label">¿A quién querés dejarle la propina?</p>
+              <div class="grid gap-2">
+                <button type="button" (click)="elegirEquipo()"
+                  class="rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all"
+                  [class.border-primary]="modoMesa() === 'equipo'"
+                  [class.bg-primary]="modoMesa() === 'equipo'"
+                  [class.text-white]="modoMesa() === 'equipo'"
+                  [class.border-hairline]="modoMesa() !== 'equipo'"
+                  [class.text-ink]="modoMesa() !== 'equipo'">
+                  👥 A todo el equipo
+                  @if (destinatarios()!.grupoNombre) { <span class="opacity-80">· {{ destinatarios()!.grupoNombre }}</span> }
+                </button>
+                @for (mozo of destinatarios()!.mozos; track mozo.empleadoId) {
+                  <button type="button" (click)="elegirMozo(mozo.empleadoId)"
+                    class="rounded-xl border px-4 py-3 text-left text-sm font-medium transition-all"
+                    [class.border-primary]="mozoElegido() === mozo.empleadoId"
+                    [class.bg-primary]="mozoElegido() === mozo.empleadoId"
+                    [class.text-white]="mozoElegido() === mozo.empleadoId"
+                    [class.border-hairline]="mozoElegido() !== mozo.empleadoId"
+                    [class.text-ink]="mozoElegido() !== mozo.empleadoId">
+                    🙋 {{ mozo.nombre }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
 
-        <p class="mt-4 text-center text-[11px] text-muted-soft">
-          TipQR no es una billetera. Solo registra y distribuye la propina.
-        </p>
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            @for (m of montosSugeridos; track m) {
+              <button type="button" (click)="elegirMonto(m)"
+                class="rounded-xl border py-4 font-display text-2xl font-semibold transition-all"
+                [class.border-primary]="montoSeleccionado() === m"
+                [class.bg-primary]="montoSeleccionado() === m"
+                [class.text-white]="montoSeleccionado() === m"
+                [class.border-hairline]="montoSeleccionado() !== m"
+                [class.text-ink]="montoSeleccionado() !== m"
+                [class.hover:border-primary]="montoSeleccionado() !== m">
+                ${{ m }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-4">
+            <label class="label">Otro monto</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">$</span>
+              <input class="input pl-7" inputmode="numeric" placeholder="Ingresá un monto"
+                [value]="montoLibre()" (input)="onMontoLibre($any($event.target).value)" />
+            </div>
+          </div>
+
+          <button type="button" (click)="confirmar()"
+            [disabled]="montoFinal() <= 0 || !destinatarioListo() || estado() === 'enviando'"
+            class="btn btn-primary w-full mt-6 py-3 text-base disabled:opacity-50">
+            @if (estado() === 'enviando') { Redirigiendo a Mercado Pago… }
+            @else { Pagar ${{ montoFinal() > 0 ? montoFinal() : '' }} de propina }
+          </button>
+
+          <p class="mt-4 text-center text-[11px] text-muted-soft">
+            TipQR no es una billetera. Solo registra y distribuye la propina.
+          </p>
+        }
       </div>
     }
   </div>

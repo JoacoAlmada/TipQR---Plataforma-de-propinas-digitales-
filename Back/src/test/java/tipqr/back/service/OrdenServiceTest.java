@@ -13,10 +13,13 @@ import tipqr.back.entity.enums.EstadoOrden;
 import tipqr.back.entity.enums.TipoEventoOrden;
 import tipqr.back.entity.enums.TipoPropina;
 import tipqr.back.entity.CodigoQR;
+import tipqr.back.entity.GrupoPropina;
 import tipqr.back.entity.enums.TipoDestinoQR;
 import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.CodigoQRRepository;
+import tipqr.back.repository.EmpleadoRepository;
 import tipqr.back.repository.EventoOrdenRepository;
+import tipqr.back.repository.GrupoPropinaEmpleadoRepository;
 import tipqr.back.repository.OrdenPropinaRepository;
 
 import java.math.BigDecimal;
@@ -34,6 +37,9 @@ class OrdenServiceTest {
     @Mock private OrdenPropinaRepository ordenRepository;
     @Mock private EventoOrdenRepository eventoRepository;
     @Mock private CodigoQRRepository qrRepository;
+    @Mock private GrupoPropinaEmpleadoRepository miembroRepository;
+    @Mock private EmpleadoRepository empleadoRepository;
+    @Mock private TurnoService turnoService;
     @InjectMocks private OrdenService ordenService;
 
     private Empresa empresa;
@@ -185,7 +191,7 @@ class OrdenServiceTest {
                 .tipoDestino(TipoDestinoQR.EMPLEADO).sucursal(sucursal).empleado(empleado).build();
         when(qrRepository.findByCodigo("QR1")).thenReturn(Optional.of(qr));
 
-        OrdenPropina orden = ordenService.crearDesdeQr("QR1", new BigDecimal("2000"));
+        OrdenPropina orden = ordenService.crearDesdeQr("QR1", new BigDecimal("2000"), null);
 
         assertEquals(TipoPropina.INDIVIDUAL, orden.getTipoPropina());
         assertEquals(empleado, orden.getEmpleado());
@@ -193,17 +199,60 @@ class OrdenServiceTest {
     }
 
     @Test
-    void crearDesdeQr_qrDeMesa_creaOrdenIndividualConMesa() {
+    void crearDesdeQr_mesaSinEmpleado_creaGrupalAlEquipoDelTurno() {
         Mesa mesa = Mesa.builder().id(8L).sucursal(sucursal).numero(3).build();
         CodigoQR qr = CodigoQR.builder().codigo("QR2").activo(true)
                 .tipoDestino(TipoDestinoQR.MESA).sucursal(sucursal).mesa(mesa).build();
         when(qrRepository.findByCodigo("QR2")).thenReturn(Optional.of(qr));
+        when(turnoService.grupoActivo(5L)).thenReturn(Optional.of(grupo));
 
-        OrdenPropina orden = ordenService.crearDesdeQr("QR2", new BigDecimal("1000"));
+        OrdenPropina orden = ordenService.crearDesdeQr("QR2", new BigDecimal("1000"), null);
+
+        assertEquals(TipoPropina.GRUPAL, orden.getTipoPropina());
+        assertEquals(grupo, orden.getGrupoPropina());
+        assertEquals(mesa, orden.getMesa());
+    }
+
+    @Test
+    void crearDesdeQr_mesaConMozoDelTurno_creaIndividual() {
+        Mesa mesa = Mesa.builder().id(8L).sucursal(sucursal).numero(3).build();
+        CodigoQR qr = CodigoQR.builder().codigo("QR2").activo(true)
+                .tipoDestino(TipoDestinoQR.MESA).sucursal(sucursal).mesa(mesa).build();
+        when(qrRepository.findByCodigo("QR2")).thenReturn(Optional.of(qr));
+        when(turnoService.grupoActivo(5L)).thenReturn(Optional.of(grupo));
+        when(miembroRepository.existsByGrupoPropinaIdAndEmpleadoId(30L, 20L)).thenReturn(true);
+        when(empleadoRepository.findById(20L)).thenReturn(Optional.of(empleado));
+
+        OrdenPropina orden = ordenService.crearDesdeQr("QR2", new BigDecimal("1000"), 20L);
 
         assertEquals(TipoPropina.INDIVIDUAL, orden.getTipoPropina());
+        assertEquals(empleado, orden.getEmpleado());
         assertEquals(mesa, orden.getMesa());
-        assertNull(orden.getEmpleado());
+    }
+
+    @Test
+    void crearDesdeQr_mesaSinTurnoActivo_lanza400() {
+        Mesa mesa = Mesa.builder().id(8L).sucursal(sucursal).numero(3).build();
+        CodigoQR qr = CodigoQR.builder().codigo("QR2").activo(true)
+                .tipoDestino(TipoDestinoQR.MESA).sucursal(sucursal).mesa(mesa).build();
+        when(qrRepository.findByCodigo("QR2")).thenReturn(Optional.of(qr));
+        when(turnoService.grupoActivo(5L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> ordenService.crearDesdeQr("QR2", new BigDecimal("1000"), null));
+    }
+
+    @Test
+    void crearDesdeQr_mesaMozoFueraDelTurno_lanza400() {
+        Mesa mesa = Mesa.builder().id(8L).sucursal(sucursal).numero(3).build();
+        CodigoQR qr = CodigoQR.builder().codigo("QR2").activo(true)
+                .tipoDestino(TipoDestinoQR.MESA).sucursal(sucursal).mesa(mesa).build();
+        when(qrRepository.findByCodigo("QR2")).thenReturn(Optional.of(qr));
+        when(turnoService.grupoActivo(5L)).thenReturn(Optional.of(grupo));
+        when(miembroRepository.existsByGrupoPropinaIdAndEmpleadoId(30L, 99L)).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> ordenService.crearDesdeQr("QR2", new BigDecimal("1000"), 99L));
     }
 
     @Test
@@ -211,7 +260,7 @@ class OrdenServiceTest {
         when(qrRepository.findByCodigo("NOPE")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> ordenService.crearDesdeQr("NOPE", new BigDecimal("1000")));
+                () -> ordenService.crearDesdeQr("NOPE", new BigDecimal("1000"), null));
     }
 
     @Test
@@ -221,7 +270,7 @@ class OrdenServiceTest {
         when(qrRepository.findByCodigo("QR3")).thenReturn(Optional.of(qr));
 
         assertThrows(ResourceNotFoundException.class,
-                () -> ordenService.crearDesdeQr("QR3", new BigDecimal("1000")));
+                () -> ordenService.crearDesdeQr("QR3", new BigDecimal("1000"), null));
     }
 
     private OrdenPropina ordenPendiente(EstadoOrden estado) {

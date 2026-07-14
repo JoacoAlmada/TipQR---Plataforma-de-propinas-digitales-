@@ -7,6 +7,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientException;
 import tipqr.back.dto.ErrorResponse;
 import tipqr.back.exception.DuplicateResourceException;
 import tipqr.back.exception.ResourceNotFoundException;
@@ -44,6 +45,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDisabled(DisabledException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(RestClientException.class)
+    public ResponseEntity<ErrorResponse> handleRestClient(RestClientException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ErrorResponse.of(HttpStatus.BAD_GATEWAY.value(),
+                        "Error al comunicarse con Mercado Pago"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

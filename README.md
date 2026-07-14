@@ -32,10 +32,10 @@ El sistema **no** funciona como billetera virtual ni custodia dinero. El procesa
 | Captcha | Google reCAPTCHA v2 (registro) |
 | Configuración | Variables de entorno vía `.env` (spring-dotenv, gitignored) |
 | Documentación API | Swagger / OpenAPI (springdoc) |
-| Pagos | Mercado Pago Checkout Pro (ambiente de prueba) + Webhooks |
-| Testing | JUnit 5 + Mockito (131 tests unitarios), H2 en memoria |
+| Pagos | Mercado Pago Checkout Pro (ambiente de prueba) + Webhooks (integración vía REST con `RestClient`) |
+| Testing | JUnit 5 + Mockito (163 tests unitarios), H2 en memoria |
 | Diseño | Design system propio (tipografía Fraunces + Hanken Grotesk, paleta bordó/rosa/navy) |
-| Utilidades | Lombok, librería QR |
+| Utilidades | Lombok, ZXing (generación de QR) |
 
 ---
 
@@ -69,15 +69,36 @@ Todo con **aislamiento multi-tenant** (cada dueño accede solo a los datos de su
 - **Asignación de empleados a grupos**: relación N:N (solo empleados de la misma sucursal, sin duplicar).
 - **Panel del encargado**: un empleado puede marcarse como encargado; ve en solo lectura los empleados, mesas y grupos de su sucursal.
 
+### ✅ Del QR a la propina pagada (Sprint 3)
+
+#### Órdenes de propina (modelo, estados y eventos)
+- Cada propina es una **orden** con código único, tipo, monto, estado y vencimiento.
+- Ciclo de estados: `CREADA → PENDIENTE_PAGO → PAGADA / RECHAZADA / CANCELADA / EXPIRADA`. Cada cambio registra un **EventoOrden** (trazabilidad completa).
+- **Expiración automática**: una tarea programada (`@Scheduled`) expira las órdenes sin pagar vencidas. El plazo es configurable.
+- Endpoint público de consulta de estado, usado por la pantalla pública mientras espera el pago.
+
+#### Generación de códigos QR
+- Se genera **automáticamente** un QR único por mesa y por empleado al darlos de alta (idempotente).
+- Cada QR apunta a la pantalla pública de propina. **Descarga e previsualización del PNG** en el panel de administración (con regeneración del código).
+
+#### Pantalla pública de propina (sin login)
+- El cliente escanea el QR, ve el destino (mesa/empleado) y el comercio, elige un **monto preestablecido o libre** y continúa al pago. Pantalla mobile-first.
+
+#### Integración con Mercado Pago (Checkout Pro)
+- Al confirmar el monto se crea la **preferencia de pago** y se redirige al Checkout Pro; la orden pasa a `PENDIENTE_PAGO`.
+- **Webhook** que recibe la notificación de Mercado Pago, consulta el pago y **concilia** la orden automáticamente (`approved → PAGADA`, `rejected → RECHAZADA`), registrando el `Pago` y el `WebhookPago`.
+- **Validación de firma** (`x-signature`, HMAC-SHA256) implementada y configurable: se valida en producción y se desactiva en el sandbox (los pagos de usuarios de prueba se firman con un secreto no expuesto).
+- Pantalla de resultado del pago con consulta del estado (aprobado / rechazado / pendiente).
+
 ### ✅ Diseño
 - Rediseño editorial completo de toda la interfaz (tipografía Fraunces + Hanken Grotesk, paleta bordó/rosa/navy, superficies crema) con un design system propio en `styles.css`.
 
 ### ✅ Calidad
-- **131 tests unitarios** (JUnit 5 + Mockito) cubriendo seguridad, servicios, controladores, entidades y DTOs.
+- **163 tests unitarios** (JUnit 5 + Mockito) cubriendo seguridad, servicios (incluidos órdenes, QR y pagos), controladores, entidades y DTOs.
 
-### 🚧 Próximos sprints
-- Generación de QR, pantalla pública de propina, órdenes e integración con Mercado Pago (Sprint 3).
-- Conciliación de pagos, distribución grupal, dashboards y reportes (Sprint 4).
+### 🚧 En curso / próximos
+- Historial de propinas del empleado y dashboard de resumen del dueño (resto del Sprint 3).
+- Distribución de propinas grupales, dashboards y reportes (Sprint 4).
 - Comunicaciones internas y agentes de IA (Sprint 5).
 
 ---
@@ -376,7 +397,7 @@ Historial de cambios de estado de una orden de propina.
 |---|---|---|
 | id | Long | PK |
 | orden_propina_id | Long | FK → OrdenPropina |
-| tipoEvento | Enum | ORDEN_CREADA, PREFERENCIA_MP_GENERADA, PAGO_CONFIRMADO, ORDEN_PAGADA, ORDEN_EXPIRADA, DISTRIBUCION_GENERADA |
+| tipoEvento | Enum | ORDEN_CREADA, PREFERENCIA_MP_GENERADA, PAGO_CONFIRMADO, ORDEN_PAGADA, ORDEN_RECHAZADA, ORDEN_CANCELADA, ORDEN_EXPIRADA, DISTRIBUCION_GENERADA |
 | descripcion | String | Descripción del evento |
 | fecha | LocalDateTime | Fecha del evento |
 
@@ -662,6 +683,12 @@ Base URL: `http://localhost:8080`. Todos los endpoints (excepto los públicos) r
 | `POST` | `/api/registro/paso2?token=` | Datos del comercio |
 | `POST` | `/api/registro/documentos?token=&tipo=` | Subida de documento (multipart) |
 | `POST` | `/api/registro/finalizar?token=` | Finaliza → cuenta en PENDIENTE_VALIDACION |
+| `GET` | `/api/public/qr/{codigo}` | Resuelve el QR escaneado (destino + comercio) |
+| `POST` | `/api/public/qr/{codigo}/ordenes` | Crea la orden de propina con el monto elegido |
+| `POST` | `/api/public/ordenes/{codigo}/pago` | Inicia el pago: crea la preferencia de Mercado Pago |
+| `GET` | `/api/public/pagos/retorno?orden=` | Retorno del Checkout Pro (redirige al frontend) |
+| `POST` | `/api/public/pagos/webhook` | Webhook de Mercado Pago (conciliación de la orden) |
+| `GET` | `/api/ordenes/{codigo}/estado` | Estado de una orden (polling de la pantalla pública) |
 | `GET` | `/swagger-ui.html` | Documentación interactiva OpenAPI |
 
 ### Perfil (usuario autenticado)
@@ -711,6 +738,14 @@ Mismo patrón ABM (`GET` lista con filtro `?sucursalId=`, `GET /{id}`, `POST`, `
 | `POST` | `/api/grupos-propina/{id}/empleados` | Agregar empleado (de la misma sucursal) |
 | `DELETE` | `/api/grupos-propina/{id}/empleados/{empleadoId}` | Remover empleado |
 
+### Códigos QR (`DUENO`, `ENCARGADO`)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `GET` | `/api/qr?sucursalId=` | Listar QR (filtrable por sucursal) |
+| `GET` | `/api/qr/{id}/imagen` | Imagen PNG del QR (previsualizar / descargar) |
+| `POST` | `/api/qr/{id}/regenerar` | Regenerar el código del QR (`DUENO`) |
+
 ### Superadmin (`SUPERADMIN`)
 
 | Método | Endpoint | Descripción |
@@ -741,7 +776,7 @@ Los errores se devuelven con un cuerpo uniforme: `{ "status": 409, "error": "...
 | Sprint 0 | 14/05 – 18/05 | Entorno, repositorio, BD y estructura inicial | ✅ Completado |
 | Sprint 1 | 19/05 – 01/06 | Login, roles y estructura base frontend/backend | ✅ Completado |
 | Sprint 2 | 02/06 – 15/06 | ABM empresa, sucursales, empleados, mesas y grupos + onboarding, superadmin y panel encargado | ✅ Completado |
-| Sprint 3 | 16/06 – 29/06 | QR, pantalla pública, órdenes de propina e integración Mercado Pago | ⏳ Pendiente |
+| Sprint 3 | 16/06 – 29/06 | QR, pantalla pública, órdenes de propina e integración Mercado Pago | 🚧 En curso (QR, pantalla pública, órdenes y pago con MP ✅) |
 | Sprint 4 | 30/06 – 13/07 | Conciliación, distribución grupal, dashboards y reportes | ⏳ Pendiente |
 | Sprint 5 | 14/07 – 20/07 | Comunicaciones internas, agentes IA, testing y demo final | ⏳ Pendiente |
 
@@ -766,8 +801,9 @@ TipQR/
 │   └── src/app/
 │       ├── core/               # Servicios, guards, interceptores, modelos
 │       ├── features/           # auth (login/registro), dashboards, empresa,
-│       │                       #   sucursal, empleado, mesa, grupo,
-│       │                       #   encargado, superadmin, landing
+│       │                       #   sucursal, empleado, mesa, grupo, qr,
+│       │                       #   encargado, superadmin, landing,
+│       │                       #   public (pantalla de propina + resultado de pago)
 │       └── shared/             # Layout y componentes reutilizables
 │
 └── docker-compose.yml          # PostgreSQL + pgAdmin
@@ -814,7 +850,29 @@ cp .env.example .env
 - Health check: `GET http://localhost:8080/api/health`
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 
-> Las credenciales (DB, SMTP, reCAPTCHA, JWT) se configuran con variables de entorno en el archivo `Back/.env` (excluido del repositorio). Ver `.env.example` como referencia. El registro real necesita credenciales SMTP y claves de reCAPTCHA v2.
+> Las credenciales (DB, SMTP, reCAPTCHA, JWT, Mercado Pago) se configuran con variables de entorno en el archivo `Back/.env` (excluido del repositorio). Ver `.env.example` como referencia. El registro real necesita credenciales SMTP y claves de reCAPTCHA v2.
+
+#### Variables de Mercado Pago (`Back/.env`)
+
+> Solo nombres de variables — los valores reales nunca se versionan.
+
+| Variable | Descripción |
+|---|---|
+| `MP_ACCESS_TOKEN` | Access token del vendedor (usuario de prueba en sandbox) |
+| `MP_PUBLIC_KEY` | Public key de la aplicación |
+| `MP_WEBHOOK_URL` | URL pública base que recibe el webhook y el retorno (en local, la URL de ngrok) |
+| `MP_WEBHOOK_SECRET` | Secreto para validar la firma del webhook |
+| `MP_VALIDATE_SIGNATURE` | `true` en producción; `false` en sandbox (los webhooks de usuarios de prueba se firman con un secreto no expuesto) |
+
+#### Webhook en local (ngrok)
+
+Mercado Pago necesita una URL pública para enviar el webhook; `localhost` no es accesible. Para probar el pago de punta a punta se expone el backend con un túnel:
+
+```bash
+ngrok http 8080
+```
+
+La URL `https://...ngrok-free.app` que devuelve se usa como `MP_WEBHOOK_URL`. Para correr los tests no hace falta ngrok.
 
 Al iniciar por primera vez se crean automáticamente usuarios de prueba:
 
@@ -840,7 +898,7 @@ cd Back
 ./mvnw test
 ```
 
-Ejecuta los 131 tests unitarios (JUnit 5 + Mockito) sobre una base H2 en memoria.
+Ejecuta los 163 tests unitarios (JUnit 5 + Mockito) sobre una base H2 en memoria.
 
 ### Bajar los servicios
 

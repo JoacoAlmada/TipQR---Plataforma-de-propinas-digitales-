@@ -28,9 +28,29 @@ export const routes: Routes = [
       import('./features/auth/verificar-email/verificar-email.component').then(m => m.VerificarEmailComponent)
   },
   {
+    path: 'terminos',
+    loadComponent: () =>
+      import('./features/legal/terminos.component').then(m => m.TerminosComponent)
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () =>
+      import('./features/legal/privacidad.component').then(m => m.PrivacidadComponent)
+  },
+  {
+    path: 'faq',
+    loadComponent: () =>
+      import('./features/legal/faq.component').then(m => m.FaqComponent)
+  },
+  {
     path: 'propina/:codigo',
     loadComponent: () =>
       import('./features/public/propina.component').then(m => m.PropinaPublicaComponent)
+  },
+  {
+    path: 'pago/resultado',
+    loadComponent: () =>
+      import('./features/public/pago-resultado.component').then(m => m.PagoResultadoComponent)
   },
   {
     path: 'superadmin',
@@ -146,6 +166,11 @@ export const routes: Routes = [
         path: 'qr',
         loadComponent: () =>
           import('./features/qr/qr-list.component').then(m => m.QrListComponent)
+      },
+      {
+        path: 'notificaciones',
+        loadComponent: () =>
+          import('./features/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent)
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

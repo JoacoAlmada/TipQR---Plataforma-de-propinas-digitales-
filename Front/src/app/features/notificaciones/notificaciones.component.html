@@ -1,0 +1,76 @@
+<div>
+  <!-- Encabezado -->
+  <div class="flex items-end justify-between mb-7 gap-4 flex-wrap">
+    <div>
+      <span class="eyebrow">Comunicación</span>
+      <h1 class="mt-1.5 font-display text-3xl sm:text-4xl font-semibold text-ink">Notificaciones</h1>
+      <p class="mt-1.5 text-sm text-muted">Avisos internos de tu comercio</p>
+    </div>
+    @if (puedeEnviar) {
+      <button (click)="mostrarForm.set(!mostrarForm())" class="btn btn-primary whitespace-nowrap">
+        {{ mostrarForm() ? 'Cancelar' : '+ Nuevo aviso' }}
+      </button>
+    }
+  </div>
+
+  <!-- Formulario de envío -->
+  @if (puedeEnviar && mostrarForm()) {
+    <div class="card p-6 mb-6">
+      <h2 class="font-display text-lg font-semibold text-ink mb-4">Enviar aviso a los empleados</h2>
+      @if (formMsg()) { <div class="alert-error mb-4">{{ formMsg() }}</div> }
+      <div class="space-y-4">
+        <div>
+          <label class="label">Título</label>
+          <input class="input" placeholder="Ej: Reunión de equipo"
+            [value]="titulo()" (input)="titulo.set($any($event.target).value)" />
+        </div>
+        <div>
+          <label class="label">Mensaje</label>
+          <textarea rows="3" class="input h-auto py-2.5" placeholder="Escribí el aviso…"
+            [value]="mensaje()" (input)="mensaje.set($any($event.target).value)"></textarea>
+        </div>
+        <div>
+          <label class="label">Destinatarios</label>
+          <select class="input w-full sm:w-72"
+            (change)="sucursalId.set($any($event.target).value ? +$any($event.target).value : null)">
+            <option value="">Toda la empresa</option>
+            @for (s of sucursales(); track s.id) {
+              <option [value]="s.id">Solo {{ s.nombre }}</option>
+            }
+          </select>
+        </div>
+        <button (click)="enviar()" [disabled]="enviando()" class="btn btn-primary">
+          @if (enviando()) { Enviando… } @else { Enviar aviso }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Bandeja -->
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando…</div>
+  } @else if (notificaciones().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">🔔</div>
+      <p class="mt-4 text-muted text-sm">No tenés notificaciones.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (n of notificaciones(); track n.id) {
+        <div (click)="marcarLeida(n)"
+          class="card p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-all"
+          [class.border-l-4]="!n.leida" [class.border-l-primary]="!n.leida">
+          <span class="text-2xl shrink-0">{{ icono(n.categoria) }}</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="font-medium text-ink" [class.font-semibold]="!n.leida">{{ n.titulo }}</p>
+              @if (!n.leida) { <span class="badge badge-accent">Nueva</span> }
+            </div>
+            <p class="mt-1 text-sm text-body">{{ n.mensaje }}</p>
+            <p class="mt-2 text-xs text-muted-soft">De {{ n.emisor }} · {{ n.fecha }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

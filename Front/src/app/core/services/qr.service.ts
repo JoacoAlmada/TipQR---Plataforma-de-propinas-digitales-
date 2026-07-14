@@ -22,4 +22,13 @@ export class QrService {
   regenerar(id: number): Observable<Qr> {
     return this.http.post<Qr>(`${this.API}/${id}/regenerar`, null);
   }
+
+  // ── Mi QR (empleado) ──
+  miQr(): Observable<Qr> {
+    return this.http.get<Qr>(`${this.API}/mi-qr`);
+  }
+
+  miQrImagen(): Observable<Blob> {
+    return this.http.get(`${this.API}/mi-qr/imagen`, { responseType: 'blob' });
+  }
 }

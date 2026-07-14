@@ -4,21 +4,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tipqr.back.dto.MesaDestinatariosResponse;
 import tipqr.back.dto.QrDestinoResponse;
 import tipqr.back.dto.QrResponse;
 import tipqr.back.entity.CodigoQR;
 import tipqr.back.entity.Empleado;
 import tipqr.back.entity.Empresa;
+import tipqr.back.entity.GrupoPropina;
 import tipqr.back.entity.Mesa;
 import tipqr.back.entity.Usuario;
 import tipqr.back.entity.enums.TipoDestinoQR;
 import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.CodigoQRRepository;
+import tipqr.back.repository.GrupoPropinaEmpleadoRepository;
 import tipqr.back.repository.SucursalRepository;
 import tipqr.back.repository.UsuarioRepository;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Códigos QR de propina. Se genera uno (único) por mesa y por empleado, de forma automática
@@ -36,6 +40,8 @@ public class QrService {
     private final SucursalRepository sucursalRepository;
     private final UsuarioRepository usuarioRepository;
     private final QrGenerator qrGenerator;
+    private final GrupoPropinaEmpleadoRepository miembroRepository;
+    private final TurnoService turnoService;
 
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
@@ -84,6 +90,66 @@ public class QrService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Código QR " + codigo + " no encontrado o inactivo"));
         return QrDestinoResponse.fromEntity(qr);
+    }
+
+    /**
+     * Destinatarios de la propina de una mesa: los mozos del turno activo (para elegir individual)
+     * o el equipo completo. Si no hay turno activo, la lista viene vacía y turnoActivo = false.
+     */
+    @Transactional(readOnly = true)
+    public MesaDestinatariosResponse resolverDestinatariosMesa(String codigo) {
+        CodigoQR qr = qrRepository.findByCodigo(codigo)
+                .filter(q -> Boolean.TRUE.equals(q.getActivo()))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Código QR " + codigo + " no encontrado o inactivo"));
+
+        Optional<GrupoPropina> grupoActivo = turnoService.grupoActivo(qr.getSucursal().getId());
+        List<MesaDestinatariosResponse.Mozo> mozos = grupoActivo
+                .map(g -> miembroRepository.findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(g.getId())
+                        .stream()
+                        .map(m -> new MesaDestinatariosResponse.Mozo(
+                                m.getEmpleado().getId(), m.getEmpleado().getNombreVisible()))
+                        .toList())
+                .orElse(List.of());
+
+        String destinoNombre = qr.getMesa() != null ? "Mesa " + qr.getMesa().getNumero() : null;
+        String empresaNombre = (qr.getSucursal() != null && qr.getSucursal().getEmpresa() != null)
+                ? qr.getSucursal().getEmpresa().getNombre() : null;
+
+        return MesaDestinatariosResponse.builder()
+                .codigo(qr.getCodigo())
+                .destinoNombre(destinoNombre)
+                .sucursalNombre(qr.getSucursal() != null ? qr.getSucursal().getNombre() : null)
+                .empresaNombre(empresaNombre)
+                .turnoActivo(grupoActivo.isPresent())
+                .grupoNombre(grupoActivo.map(GrupoPropina::getNombre).orElse(null))
+                .mozos(mozos)
+                .build();
+    }
+
+    // ── Mi QR (empleado) ──────────────────────────────────────────────────────
+
+    /** QR del empleado logueado (lo genera si todavía no tiene). */
+    @Transactional
+    public QrResponse miQr(String emailUsuario) {
+        return QrResponse.fromEntity(generarParaEmpleado(empleadoDelUsuario(emailUsuario)));
+    }
+
+    /** Imagen PNG del QR del empleado logueado. */
+    @Transactional
+    public byte[] miQrImagen(String emailUsuario) {
+        CodigoQR qr = generarParaEmpleado(empleadoDelUsuario(emailUsuario));
+        return qrGenerator.generarPng(qr.getUrl());
+    }
+
+    private Empleado empleadoDelUsuario(String emailUsuario) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        Empleado empleado = usuario.getEmpleado();
+        if (empleado == null) {
+            throw new ResourceNotFoundException("El usuario no tiene un empleado asociado");
+        }
+        return empleado;
     }
 
     // ── Consulta (panel de administración) ────────────────────────────────────

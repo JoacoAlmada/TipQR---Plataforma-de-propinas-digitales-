@@ -18,19 +18,21 @@
   <!-- Resumen personal -->
   <div class="grid gap-4 sm:grid-cols-3">
     <div class="p-6 rounded-2xl bg-primary text-white">
-      <div class="flex items-center justify-between">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-white/75">Propinas del mes</p>
-        <span class="badge bg-white/15 text-white">Pronto</span>
-      </div>
-      <p class="mt-3 font-display text-4xl font-semibold tracking-tight text-white/50">—</p>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-white/75">Total recibido</p>
+      @if (cargandoHistorial()) {
+        <p class="mt-3 font-display text-3xl font-semibold text-white/50">···</p>
+      } @else {
+        <p class="mt-3 font-display text-4xl font-semibold tracking-tight">${{ historial()?.total ?? 0 }}</p>
+      }
     </div>
 
     <div class="card p-6">
-      <div class="flex items-center justify-between">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Recibidas hoy</p>
-        <span class="badge badge-accent">Pronto</span>
-      </div>
-      <p class="mt-3 font-display text-4xl font-semibold text-muted-soft">—</p>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Propinas recibidas</p>
+      @if (cargandoHistorial()) {
+        <p class="mt-3 font-display text-3xl font-semibold text-muted-soft">···</p>
+      } @else {
+        <p class="mt-3 font-display text-4xl font-semibold text-ink">{{ historial()?.cantidad ?? 0 }}</p>
+      }
     </div>
 
     <div class="card p-6">
@@ -42,6 +44,68 @@
     </div>
   </div>
 
+  <!-- Mis propinas -->
+  <div>
+    <div class="flex items-center gap-4 mb-5">
+      <h2 class="font-display text-2xl font-semibold text-ink">Mis propinas</h2>
+      <div class="rule-accent flex-1"></div>
+    </div>
+    @if (cargandoHistorial()) {
+      <div class="text-center py-8 text-muted-soft text-sm">Cargando…</div>
+    } @else if ((historial()?.cantidad ?? 0) === 0) {
+      <div class="card p-10 text-center">
+        <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">💸</div>
+        <p class="mt-4 text-muted text-sm">Todavía no recibiste propinas.</p>
+        <p class="mt-1 text-muted-soft text-xs">Cuando te paguen una, va a aparecer acá.</p>
+      </div>
+    } @else {
+      <div class="card divide-y divide-hairline">
+        @for (p of historial()!.propinas; track p.codigo) {
+          <div class="flex items-center justify-between p-4">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-ink flex items-center gap-2 flex-wrap">
+                {{ p.mesa || 'Propina directa' }}
+                @if (p.tipo === 'GRUPAL') { <span class="badge badge-accent">Grupal</span> }
+              </p>
+              <p class="text-xs text-muted">{{ p.fechaPago }}</p>
+            </div>
+            <p class="font-display text-lg font-semibold text-primary">${{ p.monto }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Mi código QR -->
+  <div>
+    <div class="flex items-center gap-4 mb-5">
+      <h2 class="font-display text-2xl font-semibold text-ink">Mi código QR</h2>
+      <div class="rule-accent flex-1"></div>
+    </div>
+
+    @if (qrError()) { <div class="alert-error">{{ qrError() }}</div> }
+
+    <div class="card p-6 sm:p-7 flex flex-col sm:flex-row items-center gap-6">
+      <div class="rounded-xl bg-[#fdfaf4] border border-hairline p-3 w-44 h-44 shrink-0 flex items-center justify-center">
+        @if (qrImagen()) {
+          <img [src]="qrImagen()" alt="Mi código QR" class="w-full h-full object-contain" />
+        } @else {
+          <span class="text-muted-soft text-xs">Generando…</span>
+        }
+      </div>
+      <div class="text-center sm:text-left">
+        <span class="eyebrow">Tu QR personal</span>
+        <p class="mt-1.5 text-sm text-body max-w-sm">
+          Mostralo o imprimílo para que tus clientes te dejen propina directo a vos.
+        </p>
+        @if (qr()) {
+          <p class="mt-3 font-mono text-xs tracking-wider text-muted">{{ qr()!.codigo }}</p>
+        }
+        <button (click)="descargar()" class="btn btn-secondary btn-sm mt-4" [disabled]="!qr()">⬇ Descargar PNG</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Secciones -->
   <div>
     <div class="flex items-center gap-4 mb-5">
@@ -49,18 +113,6 @@
       <div class="rule-accent flex-1"></div>
     </div>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-      <div class="card p-6 opacity-55 cursor-not-allowed">
-        <div class="w-11 h-11 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-xl">💸</div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-muted flex items-center gap-2">Mis propinas <span class="badge badge-warning">Pronto</span></h3>
-        <p class="mt-1 text-sm text-muted-soft">Historial de propinas recibidas.</p>
-      </div>
-
-      <div class="card p-6 opacity-55 cursor-not-allowed">
-        <div class="w-11 h-11 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-xl">🔳</div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-muted flex items-center gap-2">Mi código QR <span class="badge badge-warning">Pronto</span></h3>
-        <p class="mt-1 text-sm text-muted-soft">El QR para que te dejen propina.</p>
-      </div>
 
       <div class="card p-6 opacity-55 cursor-not-allowed">
         <div class="w-11 h-11 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-xl">🔔</div>

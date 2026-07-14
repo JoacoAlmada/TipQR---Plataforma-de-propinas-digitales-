@@ -1,0 +1,37 @@
+<div class="min-h-screen app-bg flex flex-col">
+
+  <!-- Header -->
+  <header class="surface-dark text-white">
+    <div class="max-w-3xl mx-auto px-5 sm:px-6 h-16 flex items-center justify-between">
+      <a routerLink="/" class="flex items-center gap-2.5">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold text-sm">T</span>
+        <span class="font-display text-xl font-semibold tracking-tight">TipQR</span>
+      </a>
+      <a routerLink="/" class="text-sm text-white/70 hover:text-white transition-colors">← Volver al inicio</a>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-5 sm:px-6 py-12 sm:py-16">
+    <span class="eyebrow">{{ eyebrow() }}</span>
+    <h1 class="mt-2 font-display text-3xl sm:text-4xl font-semibold text-ink">{{ titulo() }}</h1>
+    @if (actualizado()) {
+      <p class="mt-2 text-xs text-muted-soft">Última actualización: {{ actualizado() }}</p>
+    }
+    <div class="mt-8">
+      <ng-content />
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-hairline">
+    <div class="max-w-3xl mx-auto px-5 sm:px-6 py-8 text-center text-sm text-muted-soft">
+      <div class="flex items-center justify-center gap-4 flex-wrap mb-3">
+        <a routerLink="/terminos" class="hover:text-primary transition-colors">Términos</a>
+        <a routerLink="/privacidad" class="hover:text-primary transition-colors">Privacidad</a>
+        <a routerLink="/faq" class="hover:text-primary transition-colors">Preguntas frecuentes</a>
+      </div>
+      <p>TipQR — Plataforma de propinas digitales · UTN FRC · Almada Joaquín</p>
+    </div>
+  </footer>
+</div>

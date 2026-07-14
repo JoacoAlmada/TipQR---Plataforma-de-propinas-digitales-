@@ -145,6 +145,16 @@
                 <label class="label">Verificación de seguridad <span class="text-error">*</span></label>
                 <div #captcha class="mt-1"></div>
               </div>
+
+              <label class="flex items-start gap-2.5 mt-5 cursor-pointer">
+                <input type="checkbox" formControlName="aceptaTerminos" class="mt-0.5 shrink-0" />
+                <span class="text-sm text-body">
+                  Acepto los
+                  <a routerLink="/terminos" target="_blank" class="text-primary font-semibold hover:text-primary-active">Términos y Condiciones</a>
+                  y la
+                  <a routerLink="/privacidad" target="_blank" class="text-primary font-semibold hover:text-primary-active">Política de Privacidad</a>.
+                </span>
+              </label>
             </fieldset>
 
             @if (!verificacionPendiente()) {

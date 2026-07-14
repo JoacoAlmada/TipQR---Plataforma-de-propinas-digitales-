@@ -32,32 +32,127 @@
     </div>
 
     <div class="card p-6">
-      <div class="flex items-center justify-between">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Sucursales</p>
-        <span class="badge badge-warning">Pronto</span>
-      </div>
-      <p class="mt-3 font-display text-4xl font-semibold text-muted-soft">—</p>
-      <p class="mt-1 text-xs text-muted-soft">Próximo sprint</p>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Total recaudado</p>
+      @if (cargandoResumen()) {
+        <p class="mt-3 font-display text-3xl font-semibold text-muted-soft">···</p>
+      } @else {
+        <p class="mt-3 font-display text-4xl font-semibold text-ink">${{ resumen()?.totalRecaudado ?? 0 }}</p>
+        <p class="mt-1 text-xs text-muted-soft">En propinas pagadas</p>
+      }
     </div>
 
     <div class="card p-6">
-      <div class="flex items-center justify-between">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Empleados</p>
-        <span class="badge badge-warning">Pronto</span>
-      </div>
-      <p class="mt-3 font-display text-4xl font-semibold text-muted-soft">—</p>
-      <p class="mt-1 text-xs text-muted-soft">Próximo sprint</p>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Propinas pagadas</p>
+      @if (cargandoResumen()) {
+        <p class="mt-3 font-display text-3xl font-semibold text-muted-soft">···</p>
+      } @else {
+        <p class="mt-3 font-display text-4xl font-semibold text-ink">{{ resumen()?.cantidadPropinas ?? 0 }}</p>
+        <p class="mt-1 text-xs text-muted-soft">Cantidad total</p>
+      }
     </div>
 
     <div class="card p-6">
-      <div class="flex items-center justify-between">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Propinas del mes</p>
-        <span class="badge badge-accent">Pronto</span>
-      </div>
-      <p class="mt-3 font-display text-4xl font-semibold text-muted-soft">—</p>
-      <p class="mt-1 text-xs text-muted-soft">Próximo sprint</p>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-muted">Ticket promedio</p>
+      @if (cargandoResumen()) {
+        <p class="mt-3 font-display text-3xl font-semibold text-muted-soft">···</p>
+      } @else {
+        <p class="mt-3 font-display text-4xl font-semibold text-ink">${{ resumen()?.ticketPromedio ?? 0 }}</p>
+        <p class="mt-1 text-xs text-muted-soft">Por propina</p>
+      }
     </div>
   </div>
+
+  <!-- Propinas por sucursal -->
+  @if (esDueno && (resumen()?.porSucursal?.length ?? 0) > 0) {
+    <div>
+      <div class="flex items-center gap-4 mb-5">
+        <h2 class="font-display text-2xl font-semibold text-ink">Propinas por sucursal</h2>
+        <div class="rule-accent flex-1"></div>
+      </div>
+      <div class="card divide-y divide-hairline">
+        @for (s of resumen()!.porSucursal; track s.sucursalId) {
+          <div class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-2 text-sm text-ink">
+              <span class="text-accent-strong">🏬</span> {{ s.sucursalNombre }}
+            </div>
+            <div class="text-right">
+              <p class="font-display text-lg font-semibold text-ink">${{ s.total }}</p>
+              <p class="text-xs text-muted-soft">{{ s.cantidad }} propina(s)</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Reporte por período + Ranking -->
+  @if (esDueno) {
+    <div class="grid gap-6 lg:grid-cols-2">
+
+      <!-- Reporte por período -->
+      <div>
+        <div class="flex items-center gap-4 mb-5">
+          <h2 class="font-display text-2xl font-semibold text-ink">Reporte por período</h2>
+          <div class="rule-accent flex-1"></div>
+        </div>
+        <div class="card p-6">
+          <div class="flex items-end gap-3 flex-wrap">
+            <div>
+              <label class="label">Desde</label>
+              <input type="date" class="input" [value]="desde()" (change)="desde.set($any($event.target).value)" />
+            </div>
+            <div>
+              <label class="label">Hasta</label>
+              <input type="date" class="input" [value]="hasta()" (change)="hasta.set($any($event.target).value)" />
+            </div>
+            <button (click)="cargarReporte()" class="btn btn-secondary btn-sm">Ver</button>
+          </div>
+          @if (reporte(); as r) {
+            <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+              <div class="rounded-xl bg-surface-soft border border-hairline p-4">
+                <p class="text-[11px] uppercase tracking-wider text-muted-soft">Total</p>
+                <p class="mt-1 font-display text-2xl font-semibold text-ink">${{ r.totalRecaudado }}</p>
+              </div>
+              <div class="rounded-xl bg-surface-soft border border-hairline p-4">
+                <p class="text-[11px] uppercase tracking-wider text-muted-soft">Propinas</p>
+                <p class="mt-1 font-display text-2xl font-semibold text-ink">{{ r.cantidadPropinas }}</p>
+              </div>
+              <div class="rounded-xl bg-surface-soft border border-hairline p-4">
+                <p class="text-[11px] uppercase tracking-wider text-muted-soft">Promedio</p>
+                <p class="mt-1 font-display text-2xl font-semibold text-ink">${{ r.ticketPromedio }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Ranking de empleados -->
+      <div>
+        <div class="flex items-center gap-4 mb-5">
+          <h2 class="font-display text-2xl font-semibold text-ink">Ranking de empleados</h2>
+          <div class="rule-accent flex-1"></div>
+        </div>
+        @if (ranking().length === 0) {
+          <div class="card p-8 text-center text-sm text-muted-soft">Todavía no hay propinas registradas.</div>
+        } @else {
+          <div class="card divide-y divide-hairline">
+            @for (e of ranking(); track e.empleadoId; let i = $index) {
+              <div class="flex items-center gap-3 p-4">
+                <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                  [class.bg-primary]="i === 0" [class.text-white]="i === 0"
+                  [class.bg-surface-soft]="i > 0" [class.text-muted]="i > 0">{{ i + 1 }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-medium text-ink truncate">{{ e.nombre }}</p>
+                  <p class="text-xs text-muted-soft">{{ e.cantidad }} propina(s) · {{ e.sucursal }}</p>
+                </div>
+                <p class="font-display text-lg font-semibold text-primary">${{ e.total }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   <!-- Accesos rápidos -->
   <div>
@@ -97,11 +192,11 @@
         <p class="mt-1 text-sm text-muted">Reparto grupal de propinas.</p>
       </a>
 
-      <div class="card p-6 opacity-55 cursor-not-allowed">
-        <div class="w-11 h-11 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-xl">📊</div>
-        <h3 class="mt-4 font-display text-lg font-semibold text-muted flex items-center gap-2">Reportes <span class="badge badge-warning">Pronto</span></h3>
-        <p class="mt-1 text-sm text-muted-soft">Indicadores y resúmenes.</p>
-      </div>
+      <a routerLink="/app/qr" class="card card-hover p-6 group">
+        <div class="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl">▦</div>
+        <h3 class="mt-4 font-display text-lg font-semibold text-ink group-hover:text-primary transition-colors">Códigos QR</h3>
+        <p class="mt-1 text-sm text-muted">Descargá los QR de mesas y empleados.</p>
+      </a>
     </div>
   </div>
 </div>

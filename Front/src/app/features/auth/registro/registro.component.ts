@@ -64,7 +64,8 @@ export class RegistroComponent implements AfterViewInit {
     password: ['', [Validators.required, Validators.minLength(6)]],
     telefono: ['', [Validators.required, Validators.maxLength(30)]],
     cuit:     ['', [Validators.required, Validators.pattern(/^\d{2}-?\d{8}-?\d{1}$/)]],
-    dni:      ['', [Validators.required, Validators.pattern(/^\d{7,9}$/)]]
+    dni:      ['', [Validators.required, Validators.pattern(/^\d{7,9}$/)]],
+    aceptaTerminos: [false, [Validators.requiredTrue]]
   });
 
   form2 = this.fb.group({

@@ -146,4 +146,40 @@ class QrServiceTest {
         assertNotEquals("VIEJO", res.getCodigo());
         assertTrue(res.getUrl().endsWith("/propina/" + res.getCodigo()));
     }
+
+    // ── Mi QR (empleado) ───────────────────────────────────────
+
+    @Test
+    void miQr_devuelveElQrDelEmpleadoGenerandoloSiNoTiene() {
+        Usuario empleadoUser = Usuario.builder().id(50L).email("carlos@tipqr.com").empleado(empleado).build();
+        when(usuarioRepository.findByEmail("carlos@tipqr.com")).thenReturn(Optional.of(empleadoUser));
+        when(qrRepository.findByEmpleadoId(20L)).thenReturn(Optional.empty());
+        when(qrRepository.existsByCodigo(anyString())).thenReturn(false);
+        when(qrRepository.save(any(CodigoQR.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        QrResponse res = qrService.miQr("carlos@tipqr.com");
+
+        assertEquals("EMPLEADO", res.getTipoDestino());
+        assertEquals("Juan", res.getDestinoNombre());
+    }
+
+    @Test
+    void miQr_usuarioSinEmpleado_lanza404() {
+        Usuario noEmpleado = Usuario.builder().id(51L).email("dueno2@tipqr.com").build();
+        when(usuarioRepository.findByEmail("dueno2@tipqr.com")).thenReturn(Optional.of(noEmpleado));
+
+        assertThrows(ResourceNotFoundException.class, () -> qrService.miQr("dueno2@tipqr.com"));
+    }
+
+    @Test
+    void miQrImagen_devuelvePngDelEmpleado() {
+        Usuario empleadoUser = Usuario.builder().id(50L).email("carlos@tipqr.com").empleado(empleado).build();
+        CodigoQR qr = CodigoQR.builder().id(1L).codigo("ABC").empleado(empleado).sucursal(sucursal)
+                .url("http://localhost:4200/propina/ABC").build();
+        when(usuarioRepository.findByEmail("carlos@tipqr.com")).thenReturn(Optional.of(empleadoUser));
+        when(qrRepository.findByEmpleadoId(20L)).thenReturn(Optional.of(qr));
+        when(qrGenerator.generarPng("http://localhost:4200/propina/ABC")).thenReturn(new byte[]{1, 2, 3});
+
+        assertEquals(3, qrService.miQrImagen("carlos@tipqr.com").length);
+    }
 }

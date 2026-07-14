@@ -1,0 +1,53 @@
+<div class="app-bg min-h-screen flex flex-col items-center justify-center px-5 py-10">
+  <div class="w-full max-w-md">
+
+    <div class="flex items-center justify-center gap-2.5 mb-7">
+      <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-[#fdfaf4] font-display font-semibold">T</span>
+      <span class="font-display text-xl font-semibold tracking-tight text-ink">TipQR</span>
+    </div>
+
+    @if (vista() === 'consultando') {
+      <div class="card p-10 text-center">
+        <div class="mx-auto w-12 h-12 rounded-full border-2 border-hairline border-t-primary animate-spin"></div>
+        <p class="mt-5 text-sm text-muted">Confirmando tu pago…</p>
+        <p class="mt-1 text-xs text-muted-soft">Esto puede tardar unos segundos.</p>
+      </div>
+    }
+
+    @else if (vista() === 'pagada') {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl">✓</div>
+        <span class="eyebrow mt-5 inline-block">¡Listo!</span>
+        <h1 class="mt-1.5 font-display text-3xl font-semibold text-ink">Propina de ${{ orden()?.monto }} pagada</h1>
+        <p class="mt-2 text-sm text-muted">¡Gracias por reconocer el servicio!</p>
+        <div class="mt-6 rounded-xl bg-surface-soft border border-hairline p-4">
+          <p class="text-[11px] uppercase tracking-wider text-muted-soft">Código de la orden</p>
+          <p class="mt-1 font-mono text-lg tracking-wider text-ink">{{ orden()?.codigo }}</p>
+        </div>
+      </div>
+    }
+
+    @else if (vista() === 'rechazada') {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-14 h-14 rounded-full bg-surface-soft text-muted-soft flex items-center justify-center text-3xl">✕</div>
+        <h1 class="mt-5 font-display text-2xl font-semibold text-ink">El pago no se completó</h1>
+        <p class="mt-2 text-sm text-muted">No se registró ninguna propina. Podés volver a escanear el QR e intentar de nuevo.</p>
+      </div>
+    }
+
+    @else if (vista() === 'pendiente') {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-3xl">⏳</div>
+        <h1 class="mt-5 font-display text-2xl font-semibold text-ink">Pago en proceso</h1>
+        <p class="mt-2 text-sm text-muted">Tu pago se está procesando. Si ya lo confirmaste, en unos minutos se va a acreditar.</p>
+      </div>
+    }
+
+    @else {
+      <div class="card p-10 text-center">
+        <p class="text-body text-sm">No pudimos confirmar el estado del pago.</p>
+      </div>
+    }
+
+  </div>
+</div>

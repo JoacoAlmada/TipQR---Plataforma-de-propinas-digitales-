@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificacionService } from '../../../core/services/notificacion.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,9 +10,21 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly notificacionService = inject(NotificacionService);
   usuario = this.auth.getUsuario();
+
+  noLeidas = signal(0);
+
+  /** Se emite al navegar o cerrar sesión, para que el layout cierre el drawer en mobile. */
+  @Output() navegar = new EventEmitter<void>();
+
+  ngOnInit(): void {
+    this.notificacionService.noLeidas().subscribe({
+      next: (r) => this.noLeidas.set(r.noLeidas)
+    });
+  }
 
   readonly esDueno = this.usuario?.rol === 'DUENO';
   readonly inicio =

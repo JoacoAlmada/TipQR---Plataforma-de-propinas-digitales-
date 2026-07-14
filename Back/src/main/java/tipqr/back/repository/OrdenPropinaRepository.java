@@ -24,4 +24,14 @@ public interface OrdenPropinaRepository extends JpaRepository<OrdenPropina, Long
     // Órdenes vencidas que siguen en un estado no final (para la expiración automática).
     List<OrdenPropina> findByEstadoInAndFechaExpiracionBefore(
             List<EstadoOrden> estados, LocalDateTime limite);
+
+    // Historial del empleado: sus propinas individuales en un estado dado (ej. PAGADA).
+    List<OrdenPropina> findByEmpleadoIdAndEstadoOrderByFechaPagoDesc(Long empleadoId, EstadoOrden estado);
+
+    // Dashboard del dueño: todas las órdenes de la empresa en un estado dado.
+    List<OrdenPropina> findBySucursal_Empresa_IdAndEstado(Long empresaId, EstadoOrden estado);
+
+    // Reporte por período: órdenes de la empresa pagadas en un rango de fechas.
+    List<OrdenPropina> findBySucursal_Empresa_IdAndEstadoAndFechaPagoBetween(
+            Long empresaId, EstadoOrden estado, LocalDateTime desde, LocalDateTime hasta);
 }

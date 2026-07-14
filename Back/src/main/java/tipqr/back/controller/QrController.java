@@ -28,6 +28,24 @@ public class QrController {
         return ResponseEntity.ok(qrService.listar(user.getUsername(), sucursalId));
     }
 
+    /** QR del empleado logueado (su propio código). */
+    @GetMapping("/mi-qr")
+    @PreAuthorize("hasAnyRole('EMPLEADO', 'ENCARGADO')")
+    public ResponseEntity<QrResponse> miQr(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(qrService.miQr(user.getUsername()));
+    }
+
+    /** Imagen PNG del QR del empleado logueado (previsualizar / descargar). */
+    @GetMapping(value = "/mi-qr/imagen", produces = MediaType.IMAGE_PNG_VALUE)
+    @PreAuthorize("hasAnyRole('EMPLEADO', 'ENCARGADO')")
+    public ResponseEntity<byte[]> miQrImagen(@AuthenticationPrincipal UserDetails user) {
+        byte[] png = qrService.miQrImagen(user.getUsername());
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"mi-qr.png\"")
+                .body(png);
+    }
+
     @GetMapping(value = "/{id}/imagen", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> imagen(
             @PathVariable Long id,

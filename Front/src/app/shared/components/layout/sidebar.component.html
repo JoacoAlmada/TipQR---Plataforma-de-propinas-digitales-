@@ -22,7 +22,7 @@
   </div>
 
   <!-- Navegación -->
-  <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+  <nav class="flex-1 px-4 space-y-1 overflow-y-auto" (click)="navegar.emit()">
     <p class="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35">Navegación</p>
 
     <a [routerLink]="inicio"
@@ -57,11 +57,20 @@
         <span class="text-base">▦</span> Códigos QR
       </a>
     }
+
+    <!-- Notificaciones (todos los roles) -->
+    <a routerLink="/app/notificaciones" routerLinkActive="bg-white/12 text-white font-semibold"
+       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/8 hover:text-white transition-colors">
+      <span class="text-base">🔔</span> Notificaciones
+      @if (noLeidas() > 0) {
+        <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-white text-[11px] font-semibold">{{ noLeidas() }}</span>
+      }
+    </a>
   </nav>
 
   <!-- Cerrar sesión -->
   <div class="p-4 border-t border-white/10">
-    <button (click)="logout()"
+    <button (click)="navegar.emit(); logout()"
       class="w-full flex items-center gap-3 text-sm text-white/55 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-colors">
       <span class="text-base">→</span> Cerrar sesión
     </button>

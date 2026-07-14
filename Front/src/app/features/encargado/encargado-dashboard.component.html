@@ -37,6 +37,67 @@
       </div>
     </div>
 
+    <!-- Turno activo -->
+    <div>
+      <div class="flex items-center gap-4 mb-4">
+        <h2 class="font-display text-2xl font-semibold text-ink">Turno activo</h2>
+        <div class="rule-accent flex-1"></div>
+      </div>
+
+      @if (turnoMsg()) { <div class="alert-error mb-4">{{ turnoMsg() }}</div> }
+
+      <div class="card p-6">
+        @if (turnoActivo()) {
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <span class="badge badge-success">En curso</span>
+              <p class="mt-3 font-display text-2xl font-semibold text-ink">
+                {{ turnoActivo()!.grupoNombre }}
+                @if (turnoActivo()!.nombre) { <span class="text-muted text-lg">· {{ turnoActivo()!.nombre }}</span> }
+              </p>
+              <p class="mt-1 text-xs text-muted">
+                Las propinas de mesa se reparten entre este grupo.
+                @if (turnoActivo()!.abiertoPor) { · Abierto por {{ turnoActivo()!.abiertoPor }} }
+              </p>
+            </div>
+            <button (click)="cerrarTurno()" class="btn btn-secondary btn-sm">Cerrar turno</button>
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-hairline">
+            <p class="label">Cambiar de turno (al rotar el equipo)</p>
+            <div class="flex items-end gap-3 flex-wrap">
+              <select class="input w-56" (change)="grupoElegido.set($any($event.target).value ? +$any($event.target).value : null)">
+                <option value="">Elegí el nuevo grupo…</option>
+                @for (g of grupos(); track g.id) {
+                  <option [value]="g.id">{{ g.nombre }}</option>
+                }
+              </select>
+              <input class="input w-40" placeholder="Etiqueta (opcional)"
+                [value]="nombreTurno()" (input)="nombreTurno.set($any($event.target).value)" />
+              <button (click)="abrirTurno()" class="btn btn-primary btn-sm" [disabled]="!grupoElegido()">Cambiar turno</button>
+            </div>
+          </div>
+        } @else {
+          <p class="text-sm text-muted">No hay un turno abierto. Abrí uno para definir qué grupo cobra las propinas de mesa.</p>
+          @if (grupos().length === 0) {
+            <p class="mt-2 text-xs text-muted-soft">Primero creá un grupo de propina en tu sucursal.</p>
+          } @else {
+            <div class="mt-4 flex items-end gap-3 flex-wrap">
+              <select class="input w-56" (change)="grupoElegido.set($any($event.target).value ? +$any($event.target).value : null)">
+                <option value="">Elegí un grupo…</option>
+                @for (g of grupos(); track g.id) {
+                  <option [value]="g.id">{{ g.nombre }}</option>
+                }
+              </select>
+              <input class="input w-40" placeholder="Etiqueta (ej: Noche)"
+                [value]="nombreTurno()" (input)="nombreTurno.set($any($event.target).value)" />
+              <button (click)="abrirTurno()" class="btn btn-primary btn-sm" [disabled]="!grupoElegido()">Abrir turno</button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
     <!-- Empleados -->
     <div>
       <div class="flex items-center gap-4 mb-4">
