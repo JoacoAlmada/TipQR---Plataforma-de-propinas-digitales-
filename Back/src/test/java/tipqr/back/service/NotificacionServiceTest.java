@@ -30,6 +30,8 @@ class NotificacionServiceTest {
     @Mock private EmpleadoRepository empleadoRepository;
     @Mock private SucursalRepository sucursalRepository;
     @Mock private UsuarioRepository usuarioRepository;
+    @Mock private TurnoRepository turnoRepository;
+    @Mock private GrupoPropinaEmpleadoRepository miembroRepository;
     @InjectMocks private NotificacionService notificacionService;
 
     private static final String EMISOR = "dueno@tipqr.com";
@@ -89,6 +91,50 @@ class NotificacionServiceTest {
     }
 
     @Test
+    void enviar_porTurno_soloAlEquipoDelGrupoDelTurno() {
+        GrupoPropina grupo = GrupoPropina.builder().id(30L).sucursal(sucursal).nombre("Noche").build();
+        Turno turno = Turno.builder().id(50L).sucursal(sucursal).grupoPropina(grupo).activo(true).build();
+        when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(dueno));
+        when(turnoRepository.findByIdAndSucursal_Empresa_Id(50L, 1L)).thenReturn(Optional.of(turno));
+        when(notificacionRepository.save(any(Notificacion.class))).thenAnswer(i -> i.getArgument(0));
+        when(miembroRepository.findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(30L)).thenReturn(List.of(
+                GrupoPropinaEmpleado.builder().empleado(empleadoCon(1, "Sofia")).activo(true).build(),
+                GrupoPropinaEmpleado.builder().empleado(empleadoCon(2, "Tomas")).activo(true).build()));
+
+        CrearNotificacionRequest r = req(null);
+        r.setTurnoId(50L);
+        int enviados = notificacionService.enviar(r, EMISOR);
+
+        assertEquals(2, enviados);
+        verify(empleadoRepository, never()).findBySucursal_Empresa_IdOrderByNombreVisibleAsc(anyLong());
+    }
+
+    @Test
+    void enviar_porRol_soloEmpleadosDeEseRol() {
+        when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(dueno));
+        when(notificacionRepository.save(any(Notificacion.class))).thenAnswer(i -> i.getArgument(0));
+        when(empleadoRepository.findBySucursal_Empresa_IdAndUsuario_RolOrderByNombreVisibleAsc(1L, Rol.ENCARGADO))
+                .thenReturn(List.of(empleadoCon(3, "Vale")));
+
+        CrearNotificacionRequest r = req(null);
+        r.setRol(Rol.ENCARGADO);
+        int enviados = notificacionService.enviar(r, EMISOR);
+
+        assertEquals(1, enviados);
+        verify(empleadoRepository, never()).findBySucursal_Empresa_IdOrderByNombreVisibleAsc(anyLong());
+    }
+
+    @Test
+    void enviar_turnoAjeno_lanza404() {
+        when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(dueno));
+        when(turnoRepository.findByIdAndSucursal_Empresa_Id(99L, 1L)).thenReturn(Optional.empty());
+
+        CrearNotificacionRequest r = req(null);
+        r.setTurnoId(99L);
+        assertThrows(ResourceNotFoundException.class, () -> notificacionService.enviar(r, EMISOR));
+    }
+
+    @Test
     void enviar_sucursalAjena_lanza404() {
         when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(dueno));
         when(sucursalRepository.findByIdAndEmpresaId(5L, 1L)).thenReturn(Optional.empty());
@@ -142,5 +188,26 @@ class NotificacionServiceTest {
         when(destinatarioRepository.findByIdAndUsuarioId(99L, 10L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> notificacionService.marcarLeida(99L, EMISOR));
+    }
+
+    @Test
+    void eliminarDeBandeja_borraLaCopiaDelUsuario() {
+        Usuario u = Usuario.builder().id(10L).email(EMISOR).build();
+        NotificacionDestinatario d = NotificacionDestinatario.builder().id(7L).usuario(u).build();
+        when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(u));
+        when(destinatarioRepository.findByIdAndUsuarioId(7L, 10L)).thenReturn(Optional.of(d));
+
+        notificacionService.eliminarDeBandeja(7L, EMISOR);
+
+        verify(destinatarioRepository).delete(d);
+    }
+
+    @Test
+    void eliminarDeBandeja_ajena_lanza404() {
+        Usuario u = Usuario.builder().id(10L).email(EMISOR).build();
+        when(usuarioRepository.findByEmail(EMISOR)).thenReturn(Optional.of(u));
+        when(destinatarioRepository.findByIdAndUsuarioId(99L, 10L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> notificacionService.eliminarDeBandeja(99L, EMISOR));
     }
 }

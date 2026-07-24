@@ -10,6 +10,7 @@ import tipqr.back.dto.ResumenDuenoResponse;
 import tipqr.back.entity.Empresa;
 import tipqr.back.entity.ReporteAutomatico;
 import tipqr.back.entity.Usuario;
+import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.ReporteAutomaticoRepository;
 import tipqr.back.repository.UsuarioRepository;
 import tipqr.back.service.DashboardService;
@@ -93,6 +94,33 @@ class AgenteReporteServiceTest {
 
         assertFalse(r.isGeneradoPorIa());
         assertTrue(r.getContenido().contains("Panorama general"));
+    }
+
+    @Test
+    void eliminar_borraElReporteDeLaEmpresa() {
+        Empresa empresa = new Empresa();
+        empresa.setId(1L);
+        Usuario u = new Usuario();
+        u.setEmpresa(empresa);
+        when(usuarioRepository.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        ReporteAutomatico r = ReporteAutomatico.builder().id(5L).build();
+        when(reporteRepository.findByIdAndEmpresaId(5L, 1L)).thenReturn(Optional.of(r));
+
+        servicio().eliminar(5L, EMAIL);
+
+        verify(reporteRepository).delete(r);
+    }
+
+    @Test
+    void eliminar_reporteAjeno_lanza404() {
+        Empresa empresa = new Empresa();
+        empresa.setId(1L);
+        Usuario u = new Usuario();
+        u.setEmpresa(empresa);
+        when(usuarioRepository.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        when(reporteRepository.findByIdAndEmpresaId(9L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> servicio().eliminar(9L, EMAIL));
     }
 
     @Test

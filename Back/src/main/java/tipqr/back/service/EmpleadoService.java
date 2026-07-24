@@ -5,23 +5,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tipqr.back.dto.EmpleadoRequest;
 import tipqr.back.dto.EmpleadoResponse;
+import tipqr.back.dto.MiDocumentoResponse;
 import tipqr.back.dto.SucursalResponse;
+import tipqr.back.entity.DocumentoRegistro;
 import tipqr.back.entity.Empleado;
 import tipqr.back.entity.Empresa;
 import tipqr.back.entity.Sucursal;
 import tipqr.back.entity.Usuario;
 import tipqr.back.entity.enums.EstadoCuenta;
 import tipqr.back.entity.enums.Rol;
+import tipqr.back.entity.enums.TipoDocumento;
 import tipqr.back.exception.DuplicateResourceException;
 import tipqr.back.exception.ResourceNotFoundException;
+import tipqr.back.repository.DocumentoRegistroRepository;
 import tipqr.back.repository.EmpleadoRepository;
 import tipqr.back.repository.SucursalRepository;
 import tipqr.back.repository.UsuarioRepository;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +36,17 @@ import java.util.List;
 public class EmpleadoService {
 
     private static final String ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    private static final Set<String> TIPOS_IMAGEN = Set.of("image/jpeg", "image/jpg", "image/png", "image/webp");
+    /** Documentos que se piden a un empleado (no lleva constancia de AFIP). */
+    private static final List<TipoDocumento> TIPOS_EMPLEADO =
+            List.of(TipoDocumento.DNI_FRENTE, TipoDocumento.DNI_DORSO, TipoDocumento.SELFIE);
+
     private final SecureRandom random = new SecureRandom();
 
     private final EmpleadoRepository empleadoRepository;
     private final SucursalRepository sucursalRepository;
     private final UsuarioRepository usuarioRepository;
+    private final DocumentoRegistroRepository documentoRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final QrService qrService;
@@ -167,6 +180,56 @@ public class EmpleadoService {
             throw new ResourceNotFoundException("El usuario no tiene una sucursal asignada");
         }
         return SucursalResponse.fromEntity(empleado.getSucursal());
+    }
+
+    // ── Documentación del empleado (DNI frente/dorso, selfie) ──
+
+    /** Estado de los documentos del empleado (cargado o no). */
+    @Transactional(readOnly = true)
+    public List<MiDocumentoResponse> documentos(Long id, String emailUsuario) {
+        Empleado empleado = empleadoPropio(id, emailUsuario);
+        Long usuarioId = empleado.getUsuario().getId();
+        return TIPOS_EMPLEADO.stream()
+                .map(tipo -> documentoRepository.findByUsuarioIdAndTipo(usuarioId, tipo)
+                        .map(MiDocumentoResponse::de)
+                        .orElseGet(() -> MiDocumentoResponse.vacio(tipo)))
+                .toList();
+    }
+
+    /** Binario de un documento del empleado (para previsualizar). */
+    @Transactional(readOnly = true)
+    public DocumentoRegistro archivo(Long id, TipoDocumento tipo, String emailUsuario) {
+        Empleado empleado = empleadoPropio(id, emailUsuario);
+        return documentoRepository.findByUsuarioIdAndTipo(empleado.getUsuario().getId(), tipo)
+                .orElseThrow(() -> new ResourceNotFoundException("Documento", id));
+    }
+
+    /** Sube o reemplaza una foto del empleado (DNI frente/dorso o selfie). */
+    @Transactional
+    public MiDocumentoResponse subirDocumento(Long id, TipoDocumento tipo, MultipartFile archivo, String emailUsuario) {
+        if (!TIPOS_EMPLEADO.contains(tipo)) {
+            throw new IllegalArgumentException("Tipo de documento no válido para un empleado.");
+        }
+        Empleado empleado = empleadoPropio(id, emailUsuario);
+        if (archivo == null || archivo.isEmpty()) {
+            throw new IllegalArgumentException("El archivo está vacío.");
+        }
+        if (archivo.getContentType() == null || !TIPOS_IMAGEN.contains(archivo.getContentType())) {
+            throw new IllegalArgumentException("La foto debe ser una imagen (JPG o PNG).");
+        }
+        Usuario usuario = empleado.getUsuario();
+        DocumentoRegistro doc = documentoRepository.findByUsuarioIdAndTipo(usuario.getId(), tipo)
+                .orElseGet(DocumentoRegistro::new);
+        doc.setUsuario(usuario);
+        doc.setTipo(tipo);
+        doc.setNombreArchivo(archivo.getOriginalFilename());
+        doc.setContentType(archivo.getContentType());
+        try {
+            doc.setDatos(archivo.getBytes());
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo leer el archivo.");
+        }
+        return MiDocumentoResponse.de(documentoRepository.save(doc));
     }
 
     // ── Helpers ─────────────────────────────────────────

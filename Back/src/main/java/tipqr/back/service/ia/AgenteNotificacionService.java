@@ -61,7 +61,9 @@ public class AgenteNotificacionService {
                 - categoria: uno de OPERATIVA, STOCK, HORARIO, PAGOS, GENERAL (el que mejor aplique).
                 """.formatted(instruccion);
 
-        String raw = proveedorIa.completar(INSTRUCCION_SISTEMA, prompt, true);
+        // Modo texto (no el JSON nativo de Gemini): su responseMimeType JSON devuelve UTF-8
+        // roto en algunos acentos. Pedimos el JSON por prompt y lo extraemos nosotros.
+        String raw = proveedorIa.completar(INSTRUCCION_SISTEMA, prompt, false);
         JsonNode json = parsear(raw);
 
         String titulo = recortar(textoDe(json, "titulo", "Aviso para el equipo"), 60);
@@ -78,13 +80,12 @@ public class AgenteNotificacionService {
 
     private JsonNode parsear(String raw) {
         String limpio = raw.trim();
-        // Defensa por si el modelo envuelve el JSON en ```json ... ```
-        if (limpio.startsWith("```")) {
-            int ini = limpio.indexOf('{');
-            int fin = limpio.lastIndexOf('}');
-            if (ini >= 0 && fin > ini) {
-                limpio = limpio.substring(ini, fin + 1);
-            }
+        // El modelo puede envolver el JSON en ```json ... ``` o acompañarlo de texto:
+        // extraemos el bloque entre la primera '{' y la última '}'.
+        int ini = limpio.indexOf('{');
+        int fin = limpio.lastIndexOf('}');
+        if (ini >= 0 && fin > ini) {
+            limpio = limpio.substring(ini, fin + 1);
         }
         try {
             return objectMapper.readTree(limpio);

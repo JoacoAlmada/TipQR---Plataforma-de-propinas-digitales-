@@ -5,13 +5,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import tipqr.back.dto.RegistroDatosRequest;
 import tipqr.back.dto.RegistroEstadoResponse;
 import tipqr.back.dto.RegistroPaso1Request;
 import tipqr.back.dto.RegistroPaso2Request;
+import tipqr.back.dto.RegistroResumenResponse;
 import tipqr.back.entity.DocumentoRegistro;
 import tipqr.back.entity.Empresa;
 import tipqr.back.entity.Usuario;
 import tipqr.back.entity.enums.EstadoCuenta;
+import tipqr.back.entity.enums.EstadoValidacionEmpresa;
 import tipqr.back.entity.enums.Rol;
 import tipqr.back.entity.enums.TipoDocumento;
 import tipqr.back.exception.DuplicateResourceException;
@@ -116,6 +119,57 @@ public class RegistroService {
     }
 
     /**
+     * Datos completos del registro para retomarlo (corregir y reenviar tras un rechazo).
+     */
+    @Transactional(readOnly = true)
+    public RegistroResumenResponse resumen(String token) {
+        Usuario u = registroPorToken(token);
+        Empresa e = u.getEmpresa();
+        List<String> docs = documentoRepository.findByUsuarioId(u.getId())
+                .stream().map(d -> d.getTipo().name()).toList();
+        return RegistroResumenResponse.builder()
+                .registroToken(token)
+                .estadoCuenta(u.getEstadoCuenta().name())
+                .motivoRechazo(u.getMotivoRechazo())
+                .nombre(u.getNombre()).apellido(u.getApellido()).email(u.getEmail())
+                .telefono(u.getTelefono()).cuit(u.getCuit()).dni(u.getDni())
+                .nombreEmpresa(e != null ? e.getNombre() : null)
+                .nombreFantasia(e != null ? e.getNombreFantasia() : null)
+                .provincia(e != null ? e.getProvincia() : null)
+                .calle(e != null ? e.getCalle() : null)
+                .numeracion(e != null ? e.getNumeracion() : null)
+                .empresaCuit(e != null ? e.getCuit() : null)
+                .rubro(e != null ? e.getRubro() : null)
+                .documentosCargados(docs)
+                .build();
+    }
+
+    /**
+     * Corrige los datos personales del dueño al retomar el registro (email no se cambia).
+     */
+    @Transactional
+    public void actualizarDatosPersonales(String token, RegistroDatosRequest req) {
+        Usuario usuario = registroPorToken(token);
+        exigirEmailVerificado(usuario);
+
+        String cuit = req.getCuit().trim();
+        if (!cuit.equals(usuario.getCuit()) && usuarioRepository.existsByCuit(cuit)) {
+            throw new DuplicateResourceException("Ya existe una cuenta con el CUIT " + cuit);
+        }
+        String dni = req.getDni().trim();
+        if (!dni.equals(usuario.getDni()) && usuarioRepository.existsByDni(dni)) {
+            throw new DuplicateResourceException("Ya existe una cuenta con el DNI " + dni);
+        }
+
+        usuario.setNombre(req.getNombre().trim());
+        usuario.setApellido(req.getApellido().trim());
+        usuario.setTelefono(req.getTelefono().trim());
+        usuario.setCuit(cuit);
+        usuario.setDni(dni);
+        usuarioRepository.save(usuario);
+    }
+
+    /**
      * Paso 2: datos del comercio. Requiere el email ya verificado.
      */
     @Transactional
@@ -145,6 +199,8 @@ public class RegistroService {
         empresa.setEmailContacto(usuario.getEmail());
         empresa.setTelefono(usuario.getTelefono());
         empresa.setEstado(true);
+        // La empresa del registro se valida junto con la cuenta del dueño (no requiere revisión aparte).
+        empresa.setEstadoValidacion(EstadoValidacionEmpresa.APROBADA);
         empresa = empresaRepository.save(empresa);
 
         usuario.setEmpresa(empresa);
@@ -210,6 +266,7 @@ public class RegistroService {
         }
 
         usuario.setEstadoCuenta(EstadoCuenta.PENDIENTE_VALIDACION);
+        usuario.setMotivoRechazo(null); // si se reenvía tras un rechazo, se limpia el motivo
         usuarioRepository.save(usuario);
     }
 

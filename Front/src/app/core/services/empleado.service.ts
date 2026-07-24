@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Empleado, EmpleadoRequest } from '../models/empleado.model';
+import { MiDocumento, TipoDocumento } from '../models/empresa.model';
 import { Sucursal } from '../models/sucursal.model';
 
 @Injectable({ providedIn: 'root' })
@@ -35,6 +36,23 @@ export class EmpleadoService {
   marcarEncargado(id: number, valor: boolean): Observable<Empleado> {
     const params = new HttpParams().set('valor', valor);
     return this.http.patch<Empleado>(`${this.API}/${id}/encargado`, null, { params });
+  }
+
+  // ── Documentación del empleado (DNI frente/dorso, selfie) ──
+
+  documentos(id: number): Observable<MiDocumento[]> {
+    return this.http.get<MiDocumento[]>(`${this.API}/${id}/documentos`);
+  }
+
+  documentoBlob(id: number, tipo: TipoDocumento): Observable<Blob> {
+    return this.http.get(`${this.API}/${id}/documentos/${tipo}/archivo`, { responseType: 'blob' });
+  }
+
+  subirDocumento(id: number, tipo: TipoDocumento, archivo: File): Observable<MiDocumento> {
+    const params = new HttpParams().set('tipo', tipo);
+    const fd = new FormData();
+    fd.append('archivo', archivo);
+    return this.http.post<MiDocumento>(`${this.API}/${id}/documentos`, fd, { params });
   }
 
   /** Sucursal del usuario logueado (panel del encargado). */

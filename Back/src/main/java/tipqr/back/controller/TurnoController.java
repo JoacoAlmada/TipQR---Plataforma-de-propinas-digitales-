@@ -12,6 +12,8 @@ import tipqr.back.dto.TurnoAbrirRequest;
 import tipqr.back.dto.TurnoResponse;
 import tipqr.back.service.TurnoService;
 
+import java.util.List;
+
 /**
  * Turno activo de la sucursal. Lo gestionan el dueño y el encargado.
  */
@@ -30,6 +32,12 @@ public class TurnoController {
             @AuthenticationPrincipal UserDetails user) {
         TurnoResponse turno = turnoService.turnoActivo(sucursalId, user.getUsername());
         return turno != null ? ResponseEntity.ok(turno) : ResponseEntity.noContent().build();
+    }
+
+    /** Turnos activos de todas las sucursales de la empresa (para segmentar avisos por turno). */
+    @GetMapping("/activos")
+    public ResponseEntity<List<TurnoResponse>> activos(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(turnoService.turnosActivos(user.getUsername()));
     }
 
     /** Abre un turno (eligiendo el grupo activo); cierra el anterior si lo hubiera. */

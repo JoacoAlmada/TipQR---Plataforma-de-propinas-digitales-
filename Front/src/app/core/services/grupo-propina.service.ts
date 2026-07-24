@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GrupoPropina, GrupoPropinaRequest, MiembroGrupo } from '../models/grupo-propina.model';
+import { GrupoPropina, GrupoPropinaRequest, MiembroGrupo, ItemPorcentaje } from '../models/grupo-propina.model';
 
 @Injectable({ providedIn: 'root' })
 export class GrupoPropinaService {
@@ -42,6 +42,15 @@ export class GrupoPropinaService {
 
   removerMiembro(grupoId: number, empleadoId: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/${grupoId}/empleados/${empleadoId}`);
+  }
+
+  // ── Distribución ──
+  configurarPorcentajes(grupoId: number, porcentajes: ItemPorcentaje[]): Observable<GrupoPropina> {
+    return this.http.put<GrupoPropina>(`${this.API}/${grupoId}/porcentajes`, { porcentajes });
+  }
+
+  usarEquitativo(grupoId: number): Observable<GrupoPropina> {
+    return this.http.put<GrupoPropina>(`${this.API}/${grupoId}/equitativo`, null);
   }
 }
 

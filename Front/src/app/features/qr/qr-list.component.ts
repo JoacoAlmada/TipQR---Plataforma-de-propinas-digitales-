@@ -73,6 +73,11 @@ export class QrListComponent implements OnInit {
     });
   }
 
+  /** Abre la pantalla pública de propina de este QR (en otra pestaña, así el menú queda abierto). */
+  irAlPago(q: Qr): void {
+    window.open(q.url, '_blank');
+  }
+
   regenerar(q: Qr): void {
     this.errorMsg.set('');
     this.qrService.regenerar(q.id).subscribe({

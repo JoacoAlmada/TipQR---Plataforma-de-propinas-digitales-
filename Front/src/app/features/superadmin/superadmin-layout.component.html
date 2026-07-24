@@ -14,6 +14,21 @@
     </div>
   </header>
 
+  <!-- Sub-navegación -->
+  <nav class="border-b border-hairline bg-white/40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1">
+      <a routerLink="/superadmin/solicitudes" routerLinkActive="border-primary text-primary"
+        [routerLinkActiveOptions]="{ exact: false }"
+        class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-muted hover:text-ink transition-colors">
+        Cuentas nuevas
+      </a>
+      <a routerLink="/superadmin/empresas" routerLinkActive="border-primary text-primary"
+        class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-muted hover:text-ink transition-colors">
+        Empresas nuevas
+      </a>
+    </div>
+  </nav>
+
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
     <router-outlet />
   </main>

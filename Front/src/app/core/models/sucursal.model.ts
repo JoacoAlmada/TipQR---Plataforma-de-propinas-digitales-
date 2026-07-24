@@ -2,6 +2,8 @@ export interface Sucursal {
   id: number;
   nombre: string;
   direccion: string | null;
+  latitud: number | null;
+  longitud: number | null;
   telefono: string | null;
   estado: boolean;
   fechaCreacion: string;
@@ -10,5 +12,7 @@ export interface Sucursal {
 export interface SucursalRequest {
   nombre: string;
   direccion?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
   telefono?: string | null;
 }

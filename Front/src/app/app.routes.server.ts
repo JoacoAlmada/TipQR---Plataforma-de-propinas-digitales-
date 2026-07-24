@@ -7,6 +7,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'registro/corregir',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'verificar-email',
     renderMode: RenderMode.Client
   },
@@ -20,6 +24,10 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'superadmin/solicitudes/:id',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'superadmin/empresas/:id',
     renderMode: RenderMode.Client
   },
   {

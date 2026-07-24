@@ -1,4 +1,4 @@
-<div class="max-w-2xl">
+<div class="max-w-5xl">
   <div class="mb-6">
     <a routerLink="/app/sucursales" class="text-sm text-primary hover:text-primary-active">← Volver a sucursales</a>
     <h1 class="text-3xl font-bold text-ink tracking-tight mt-2">
@@ -8,37 +8,70 @@
 
   @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 space-y-5">
-    <div>
-      <label class="label">Nombre <span class="text-error">*</span></label>
-      <input type="text" formControlName="nombre" class="input"
-        [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
-        placeholder="Ej: Sucursal Centro" />
-      @if (f['nombre'].invalid && f['nombre'].touched) {
-        <p class="field-error">El nombre es obligatorio (máx. 120 caracteres)</p>
-      }
-    </div>
+  <div class="grid lg:grid-cols-2 gap-6 items-start">
+    <!-- Formulario -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-6 space-y-5">
+      <div>
+        <label class="label">Nombre <span class="text-error">*</span></label>
+        <input type="text" formControlName="nombre" class="input"
+          [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
+          placeholder="Ej: Sucursal Centro" />
+        @if (f['nombre'].invalid && f['nombre'].touched) {
+          <p class="field-error">El nombre es obligatorio (máx. 120 caracteres)</p>
+        }
+      </div>
 
-    <div>
-      <label class="label">Dirección</label>
-      <input type="text" formControlName="direccion" class="input"
-        [class.input-error]="f['direccion'].invalid && f['direccion'].touched"
-        placeholder="Calle y número" />
-    </div>
+      <div class="relative">
+        <label class="label">Dirección</label>
+        <input type="text" formControlName="direccion" class="input" autocomplete="off"
+          (input)="onBuscarInput()"
+          [class.input-error]="f['direccion'].invalid && f['direccion'].touched"
+          placeholder="Buscá la calle o el barrio (ej: Santa Isabel)" />
 
-    <div>
-      <label class="label">Teléfono</label>
-      <input type="text" inputmode="numeric" formControlName="telefono" class="input"
-        (input)="soloNumeros()"
-        [class.input-error]="f['telefono'].invalid && f['telefono'].touched"
-        placeholder="3510000000" />
-    </div>
+        @if (buscando()) {
+          <p class="text-xs text-muted-soft mt-1">Buscando…</p>
+        }
 
-    <div class="flex items-center gap-3 pt-2">
-      <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
-        @if (loading()) { Guardando... } @else { Guardar }
-      </button>
-      <a routerLink="/app/sucursales" class="btn btn-ghost">Cancelar</a>
+        <!-- Sugerencias -->
+        @if (sugerencias().length) {
+          <ul class="absolute z-20 left-0 right-0 mt-1 bg-white border border-hairline rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+            @for (s of sugerencias(); track s.lat + '' + s.lon) {
+              <li>
+                <button type="button" (click)="elegir(s)"
+                  class="w-full text-left px-4 py-2.5 text-sm text-body hover:bg-canvas transition-colors border-b border-hairline last:border-b-0">
+                  📍 {{ s.nombre }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        <p class="text-xs text-muted-soft mt-1">
+          Elegí una opción de la lista o tocá el mapa para ubicar el pin.
+          @if (latitud() != null) { <span class="text-green-600">Ubicación fijada ✓</span> }
+        </p>
+      </div>
+
+      <div>
+        <label class="label">Teléfono</label>
+        <input type="text" inputmode="numeric" formControlName="telefono" class="input"
+          (input)="soloNumeros()"
+          [class.input-error]="f['telefono'].invalid && f['telefono'].touched"
+          placeholder="3510000000" />
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
+          @if (loading()) { Guardando... } @else { Guardar }
+        </button>
+        <a routerLink="/app/sucursales" class="btn btn-ghost">Cancelar</a>
+      </div>
+    </form>
+
+    <!-- Mapa -->
+    <div class="card p-2 lg:sticky lg:top-6">
+      <div #mapa class="w-full h-[420px] rounded-xl overflow-hidden bg-surface-soft z-0"></div>
+      <p class="text-xs text-muted-soft px-2 py-2">Mapa © OpenStreetMap · arrastrá el pin para ajustar</p>
     </div>
-  </form>
+  </div>
 </div>

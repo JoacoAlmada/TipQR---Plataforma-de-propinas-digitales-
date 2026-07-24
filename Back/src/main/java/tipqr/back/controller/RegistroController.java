@@ -7,9 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import tipqr.back.dto.RegistroDatosRequest;
 import tipqr.back.dto.RegistroEstadoResponse;
 import tipqr.back.dto.RegistroPaso1Request;
 import tipqr.back.dto.RegistroPaso2Request;
+import tipqr.back.dto.RegistroResumenResponse;
 import tipqr.back.entity.enums.TipoDocumento;
 import tipqr.back.service.RegistroService;
 
@@ -50,6 +52,21 @@ public class RegistroController {
     @GetMapping("/estado")
     public ResponseEntity<RegistroEstadoResponse> estado(@RequestParam String token) {
         return ResponseEntity.ok(registroService.estado(token));
+    }
+
+    /** Datos completos del registro para retomarlo tras un rechazo. */
+    @GetMapping("/resumen")
+    public ResponseEntity<RegistroResumenResponse> resumen(@RequestParam String token) {
+        return ResponseEntity.ok(registroService.resumen(token));
+    }
+
+    /** Corrige los datos personales del dueño al retomar el registro. */
+    @PutMapping("/datos")
+    public ResponseEntity<Void> actualizarDatos(
+            @RequestParam String token,
+            @Valid @RequestBody RegistroDatosRequest request) {
+        registroService.actualizarDatosPersonales(token, request);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/paso2")

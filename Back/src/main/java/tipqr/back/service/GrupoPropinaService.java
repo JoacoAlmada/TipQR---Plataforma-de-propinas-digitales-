@@ -3,6 +3,7 @@ package tipqr.back.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tipqr.back.dto.ConfigurarPorcentajesRequest;
 import tipqr.back.dto.GrupoPropinaRequest;
 import tipqr.back.dto.GrupoPropinaResponse;
 import tipqr.back.dto.MiembroGrupoResponse;
@@ -12,6 +13,7 @@ import tipqr.back.entity.GrupoPropina;
 import tipqr.back.entity.GrupoPropinaEmpleado;
 import tipqr.back.entity.Sucursal;
 import tipqr.back.entity.Usuario;
+import tipqr.back.entity.enums.TipoDistribucion;
 import tipqr.back.exception.DuplicateResourceException;
 import tipqr.back.exception.ResourceNotFoundException;
 import tipqr.back.repository.EmpleadoRepository;
@@ -20,7 +22,10 @@ import tipqr.back.repository.GrupoPropinaRepository;
 import tipqr.back.repository.SucursalRepository;
 import tipqr.back.repository.UsuarioRepository;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -138,6 +143,60 @@ public class GrupoPropinaService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "El empleado no pertenece a este grupo"));
         miembroRepository.delete(miembro);
+    }
+
+    // ── Distribución del grupo (equitativo / por porcentajes) ──
+
+    /**
+     * Configura el reparto por porcentajes: setea el % de cada miembro (deben sumar 100) y pone
+     * el grupo en modo PORCENTAJE. Requiere un porcentaje para cada miembro activo del grupo.
+     */
+    @Transactional
+    public GrupoPropinaResponse configurarPorcentajes(Long grupoId, ConfigurarPorcentajesRequest req,
+                                                       String emailUsuario) {
+        GrupoPropina grupo = grupoPropio(grupoId, emailUsuario);
+        List<GrupoPropinaEmpleado> miembros = miembroRepository
+                .findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(grupoId).stream()
+                .filter(m -> Boolean.TRUE.equals(m.getActivo())).toList();
+
+        if (miembros.isEmpty()) {
+            throw new IllegalArgumentException("El grupo no tiene miembros para configurar porcentajes");
+        }
+
+        Map<Long, Double> porEmpleado = new HashMap<>();
+        BigDecimal suma = BigDecimal.ZERO;
+        for (ConfigurarPorcentajesRequest.ItemPorcentaje item : req.getPorcentajes()) {
+            if (item.getPorcentaje() == null || item.getPorcentaje() <= 0) {
+                throw new IllegalArgumentException("Cada porcentaje debe ser mayor a 0");
+            }
+            porEmpleado.put(item.getEmpleadoId(), item.getPorcentaje());
+            suma = suma.add(BigDecimal.valueOf(item.getPorcentaje()));
+        }
+
+        if (suma.subtract(BigDecimal.valueOf(100)).abs().compareTo(new BigDecimal("0.5")) > 0) {
+            throw new IllegalArgumentException("Los porcentajes deben sumar 100 (suman " + suma + ")");
+        }
+
+        for (GrupoPropinaEmpleado m : miembros) {
+            Double pct = porEmpleado.get(m.getEmpleado().getId());
+            if (pct == null) {
+                throw new IllegalArgumentException(
+                        "Falta el porcentaje de " + m.getEmpleado().getNombreVisible());
+            }
+            m.setPorcentajeDistribucion(pct);
+            miembroRepository.save(m);
+        }
+
+        grupo.setTipoDistribucion(TipoDistribucion.PORCENTAJE);
+        return GrupoPropinaResponse.fromEntity(grupoRepository.save(grupo));
+    }
+
+    /** Vuelve el grupo a reparto equitativo (partes iguales). */
+    @Transactional
+    public GrupoPropinaResponse usarEquitativo(Long grupoId, String emailUsuario) {
+        GrupoPropina grupo = grupoPropio(grupoId, emailUsuario);
+        grupo.setTipoDistribucion(TipoDistribucion.EQUITATIVO);
+        return GrupoPropinaResponse.fromEntity(grupoRepository.save(grupo));
     }
 
     // ── Helpers ─────────────────────────────────────────

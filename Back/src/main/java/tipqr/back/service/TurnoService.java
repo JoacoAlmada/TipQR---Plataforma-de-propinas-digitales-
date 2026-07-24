@@ -17,6 +17,7 @@ import tipqr.back.repository.TurnoRepository;
 import tipqr.back.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,6 +66,15 @@ public class TurnoService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No hay un turno activo en la sucursal " + sucursalId));
         return TurnoResponse.fromEntity(cerrar(turno));
+    }
+
+    /** Turnos activos de todas las sucursales de la empresa (para segmentar avisos por turno). */
+    @Transactional(readOnly = true)
+    public List<TurnoResponse> turnosActivos(String emailUsuario) {
+        Empresa empresa = empresaDe(usuario(emailUsuario));
+        return turnoRepository
+                .findBySucursal_Empresa_IdAndActivoTrueOrderBySucursal_NombreAsc(empresa.getId())
+                .stream().map(TurnoResponse::fromEntity).toList();
     }
 
     @Transactional(readOnly = true)

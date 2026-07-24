@@ -1,6 +1,10 @@
 package tipqr.back.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tipqr.back.entity.OrdenPropina;
 import tipqr.back.entity.enums.EstadoOrden;
@@ -13,6 +17,15 @@ import java.util.Optional;
 public interface OrdenPropinaRepository extends JpaRepository<OrdenPropina, Long> {
 
     Optional<OrdenPropina> findByCodigo(String codigo);
+
+    /**
+     * Igual que findByCodigo pero tomando un lock de escritura sobre la fila. Se usa al conciliar
+     * un pago para serializar el webhook y el retorno de MP (que llegan casi simultáneos) y evitar
+     * que la propina se marque pagada —y se notifique— dos veces.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select o from OrdenPropina o where o.codigo = :codigo")
+    Optional<OrdenPropina> findByCodigoParaConciliar(@Param("codigo") String codigo);
 
     boolean existsByCodigo(String codigo);
 

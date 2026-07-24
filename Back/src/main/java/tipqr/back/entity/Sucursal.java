@@ -27,6 +27,11 @@ public class Sucursal {
 
     private String direccion;
 
+    /** Coordenadas de la dirección (elegidas en el mapa). */
+    private Double latitud;
+
+    private Double longitud;
+
     private String telefono;
 
     @Builder.Default

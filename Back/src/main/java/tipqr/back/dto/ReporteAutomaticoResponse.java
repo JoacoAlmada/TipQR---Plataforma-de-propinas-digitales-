@@ -5,6 +5,7 @@ import lombok.Getter;
 import tipqr.back.entity.ReporteAutomatico;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /** Reporte automático para el frontend. */
@@ -21,7 +22,8 @@ public class ReporteAutomaticoResponse {
     private Integer cantidadPropinas;
     private BigDecimal ticketPromedio;
     private boolean generadoPorIa;
-    private String fecha;
+    private String fecha;            // formateada, para mostrar
+    private LocalDateTime fechaIso;  // ISO, para ordenar/filtrar en el front
 
     public static ReporteAutomaticoResponse fromEntity(ReporteAutomatico r) {
         return ReporteAutomaticoResponse.builder()
@@ -33,6 +35,7 @@ public class ReporteAutomaticoResponse {
                 .ticketPromedio(r.getTicketPromedio())
                 .generadoPorIa(r.isGeneradoPorIa())
                 .fecha(r.getFechaGeneracion() != null ? r.getFechaGeneracion().format(FMT) : null)
+                .fechaIso(r.getFechaGeneracion())
                 .build();
     }
 }

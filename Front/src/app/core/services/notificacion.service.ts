@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Notificacion, CrearNotificacionRequest, RedaccionNotificacion } from '../models/notificacion.model';
+import { Notificacion, NotificacionEnviada, CrearNotificacionRequest, RedaccionNotificacion } from '../models/notificacion.model';
 
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
@@ -20,6 +20,21 @@ export class NotificacionService {
 
   marcarLeida(id: number): Observable<void> {
     return this.http.patch<void>(`${this.API}/mias/${id}/leida`, null);
+  }
+
+  /** Elimina la notificación de la bandeja del usuario. */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/mias/${id}`);
+  }
+
+  /** Notificaciones que el usuario envió (dueño/encargado), con estadística de lectura. */
+  enviadas(): Observable<NotificacionEnviada[]> {
+    return this.http.get<NotificacionEnviada[]>(`${this.API}/enviadas`);
+  }
+
+  /** Elimina una notificación enviada (la borra para todos los destinatarios). */
+  eliminarEnviada(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/enviadas/${id}`);
   }
 
   /** Envío de un aviso (dueño/encargado). */

@@ -23,6 +23,11 @@ export const routes: Routes = [
       import('./features/auth/registro/registro.component').then(m => m.RegistroComponent)
   },
   {
+    path: 'registro/corregir',
+    loadComponent: () =>
+      import('./features/auth/registro-correccion/registro-correccion.component').then(m => m.RegistroCorreccionComponent)
+  },
+  {
     path: 'verificar-email',
     loadComponent: () =>
       import('./features/auth/verificar-email/verificar-email.component').then(m => m.VerificarEmailComponent)
@@ -67,6 +72,16 @@ export const routes: Routes = [
         path: 'solicitudes/:id',
         loadComponent: () =>
           import('./features/superadmin/solicitud-detalle.component').then(m => m.SolicitudDetalleComponent)
+      },
+      {
+        path: 'empresas',
+        loadComponent: () =>
+          import('./features/superadmin/empresas-list.component').then(m => m.EmpresasListComponent)
+      },
+      {
+        path: 'empresas/:id',
+        loadComponent: () =>
+          import('./features/superadmin/empresa-detalle.component').then(m => m.EmpresaDetalleComponent)
       },
       { path: '', redirectTo: 'solicitudes', pathMatch: 'full' }
     ]

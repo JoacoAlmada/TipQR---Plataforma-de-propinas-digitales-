@@ -18,9 +18,13 @@
       <div class="mt-4 inline-block px-5 py-3 rounded-xl bg-surface-soft border border-hairline">
         <span class="font-mono text-lg font-semibold text-ink tracking-wide">{{ c.password }}</span>
       </div>
-      <div class="mt-6">
-        <a routerLink="/app/empleados" class="btn btn-primary">Volver al listado</a>
-      </div>
+    </div>
+
+    <!-- Documentación (ahora que el empleado existe) -->
+    <ng-container [ngTemplateOutlet]="docsCard"></ng-container>
+
+    <div class="mt-6 text-center">
+      <a routerLink="/app/empleados" class="btn btn-primary">Listo, volver al listado</a>
     </div>
   } @else {
     @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
@@ -69,6 +73,10 @@
         </div>
       </div>
 
+      @if (!esEdicion()) {
+        <p class="text-xs text-muted-soft">Después de crearlo vas a poder cargar las fotos del DNI y la selfie.</p>
+      }
+
       <div class="flex items-center gap-3 pt-2">
         <button type="submit" [disabled]="loading() || form.invalid" class="btn btn-primary">
           @if (loading()) { Guardando... } @else { Guardar }
@@ -76,5 +84,52 @@
         <a routerLink="/app/empleados" class="btn btn-ghost">Cancelar</a>
       </div>
     </form>
+
+    <!-- Documentación en edición -->
+    @if (esEdicion()) {
+      <ng-container [ngTemplateOutlet]="docsCard"></ng-container>
+    }
   }
 </div>
+
+<!-- Tarjeta de documentación reutilizable -->
+<ng-template #docsCard>
+  <div class="card p-6 mt-6 max-w-2xl">
+    <h2 class="font-display text-lg font-semibold text-ink mb-1">Documentación</h2>
+    <p class="text-sm text-muted mb-4">Foto del DNI (frente y dorso) y una selfie del empleado. Imágenes JPG o PNG.</p>
+
+    @if (docMsg()) {
+      <div class="mb-4 px-4 py-2.5 rounded-lg bg-success-soft border border-green-200 text-green-700 text-sm">{{ docMsg() }}</div>
+    }
+
+    <div class="grid sm:grid-cols-3 gap-4">
+      @for (d of documentos(); track d.tipo) {
+        <div class="rounded-xl border border-hairline p-4">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <p class="text-sm font-medium text-ink">{{ docLabel(d.tipo) }}</p>
+            @if (d.cargado) {
+              <span class="badge badge-success">Cargada</span>
+            } @else {
+              <span class="badge badge-muted">Pendiente</span>
+            }
+          </div>
+
+          @if (d.cargado && previews()[d.tipo]) {
+            <img [src]="previews()[d.tipo]" [alt]="docLabel(d.tipo)"
+              class="w-full h-32 object-cover rounded-lg border border-hairline mb-3" />
+          } @else if (d.cargado) {
+            <div class="w-full h-32 rounded-lg bg-surface-soft mb-3 flex items-center justify-center text-muted-soft text-sm">Cargando…</div>
+          } @else {
+            <div class="w-full h-32 rounded-lg bg-surface-soft mb-3 flex items-center justify-center text-muted-soft text-sm">Sin foto</div>
+          }
+
+          <label class="btn btn-secondary btn-sm w-full cursor-pointer">
+            @if (subiendoDoc() === d.tipo) { Subiendo… }
+            @else { {{ d.cargado ? 'Reemplazar' : 'Subir' }} }
+            <input type="file" class="hidden" accept="image/png,image/jpeg" (change)="subirDoc(d.tipo, $event)" />
+          </label>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

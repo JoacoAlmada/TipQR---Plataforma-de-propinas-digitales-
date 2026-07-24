@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { InfoPageComponent } from '../../shared/components/info-page/info-page.component';
 
 @Component({
   selector: 'app-privacidad',
   standalone: true,
-  imports: [InfoPageComponent],
+  imports: [InfoPageComponent, RouterLink],
   templateUrl: './privacidad.component.html'
 })
 export class PrivacidadComponent {}

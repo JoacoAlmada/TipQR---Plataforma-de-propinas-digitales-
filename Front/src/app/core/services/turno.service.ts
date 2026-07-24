@@ -14,6 +14,11 @@ export class TurnoService {
     return this.http.get<Turno | null>(`${this.API}/activo`, { params });
   }
 
+  /** Turnos activos de todas las sucursales de la empresa. */
+  activos(): Observable<Turno[]> {
+    return this.http.get<Turno[]>(`${this.API}/activos`);
+  }
+
   abrir(request: TurnoAbrirRequest): Observable<Turno> {
     return this.http.post<Turno>(`${this.API}/abrir`, request);
   }

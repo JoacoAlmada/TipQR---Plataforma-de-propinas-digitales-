@@ -14,6 +14,9 @@ public class EmpresaRequest {
     @Size(max = 120, message = "El nombre no puede superar los 120 caracteres")
     private String nombre;
 
+    @Size(max = 120, message = "El nombre de fantasía no puede superar los 120 caracteres")
+    private String nombreFantasia;
+
     @Size(max = 80, message = "El rubro no puede superar los 80 caracteres")
     private String rubro;
 
@@ -21,6 +24,15 @@ public class EmpresaRequest {
             regexp = "^$|\\d{2}-?\\d{8}-?\\d{1}$",
             message = "El CUIT debe tener el formato XX-XXXXXXXX-X (11 dígitos)")
     private String cuit;
+
+    @Size(max = 80, message = "La provincia no puede superar los 80 caracteres")
+    private String provincia;
+
+    @Size(max = 120, message = "La calle no puede superar los 120 caracteres")
+    private String calle;
+
+    @Size(max = 20, message = "La numeración no puede superar los 20 caracteres")
+    private String numeracion;
 
     @Email(message = "El email de contacto no es válido")
     private String emailContacto;

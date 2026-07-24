@@ -1,0 +1,142 @@
+<div class="min-h-screen app-bg py-10 px-4">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-8">
+      <span class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary text-[#fdfaf4] font-display font-semibold text-lg">T</span>
+      <h1 class="mt-3 font-display text-2xl font-semibold text-ink">Corregir y reenviar solicitud</h1>
+    </div>
+
+    @if (cargando()) {
+      <div class="text-center py-12 text-muted-soft text-sm">Cargando tu solicitud…</div>
+    } @else if (errorCarga()) {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-12 h-12 rounded-xl bg-error-soft text-error flex items-center justify-center text-2xl">!</div>
+        <p class="mt-4 text-muted text-sm">{{ errorCarga() }}</p>
+        <a routerLink="/login" class="btn btn-secondary mt-5">Ir al inicio</a>
+      </div>
+    } @else if (enviado()) {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-14 h-14 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-2xl">✓</div>
+        <h2 class="mt-4 text-xl font-bold text-ink">¡Solicitud reenviada!</h2>
+        <p class="mt-2 text-sm text-muted">La volvimos a mandar a validación. Te avisaremos por email cuando la revisen.</p>
+        <a routerLink="/login" class="btn btn-primary mt-6">Ir al inicio</a>
+      </div>
+    } @else if (estadoCuenta() !== 'RECHAZADA') {
+      <div class="card p-8 text-center">
+        <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">✓</div>
+        <p class="mt-4 text-muted text-sm">
+          Esta solicitud no está pendiente de corrección
+          @if (estadoCuenta() === 'PENDIENTE_VALIDACION') { (ya está en revisión). }
+          @else if (estadoCuenta() === 'APROBADA') { (ya fue aprobada). }
+        </p>
+        <a routerLink="/login" class="btn btn-secondary mt-5">Ir al inicio</a>
+      </div>
+    } @else {
+      <!-- Motivo del rechazo -->
+      <div class="alert-error mb-6">
+        <p class="font-semibold">Tu solicitud fue rechazada.</p>
+        <p class="text-sm mt-0.5">{{ motivoRechazo() ? 'Motivo: ' + motivoRechazo() : 'Revisá tus datos y documentos, corregí lo necesario y reenviá.' }}</p>
+      </div>
+
+      @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+      <!-- Datos personales -->
+      <form [formGroup]="form1" class="card p-6 mb-5 space-y-4">
+        <h2 class="font-display text-lg font-semibold text-ink">Tus datos</h2>
+        <p class="text-xs text-muted-soft -mt-2">Email: <strong>{{ emailUsuario() }}</strong> (no se puede cambiar)</p>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="label">Nombre <span class="text-error">*</span></label>
+            <input formControlName="nombre" class="input" [class.input-error]="f1['nombre'].invalid && f1['nombre'].touched" />
+          </div>
+          <div>
+            <label class="label">Apellido <span class="text-error">*</span></label>
+            <input formControlName="apellido" class="input" [class.input-error]="f1['apellido'].invalid && f1['apellido'].touched" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="label">Teléfono <span class="text-error">*</span></label>
+            <input formControlName="telefono" class="input" [class.input-error]="f1['telefono'].invalid && f1['telefono'].touched" />
+          </div>
+          <div>
+            <label class="label">CUIT <span class="text-error">*</span></label>
+            <input formControlName="cuit" class="input" [class.input-error]="f1['cuit'].invalid && f1['cuit'].touched" placeholder="30-12345678-9" />
+          </div>
+          <div>
+            <label class="label">DNI <span class="text-error">*</span></label>
+            <input formControlName="dni" class="input" [class.input-error]="f1['dni'].invalid && f1['dni'].touched" />
+          </div>
+        </div>
+      </form>
+
+      <!-- Datos del comercio -->
+      <form [formGroup]="form2" class="card p-6 mb-5 space-y-4">
+        <h2 class="font-display text-lg font-semibold text-ink">Tu comercio</h2>
+        <div>
+          <label class="label">Nombre del comercio <span class="text-error">*</span></label>
+          <input formControlName="nombreEmpresa" class="input" [class.input-error]="f2['nombreEmpresa'].invalid && f2['nombreEmpresa'].touched" />
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="label">Nombre de fantasía</label>
+            <input formControlName="nombreFantasia" class="input" placeholder="Opcional" />
+          </div>
+          <div>
+            <label class="label">Rubro <span class="text-error">*</span></label>
+            <input formControlName="rubro" class="input" [class.input-error]="f2['rubro'].invalid && f2['rubro'].touched" placeholder="Ej: Gastronomía" />
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="label">Provincia <span class="text-error">*</span></label>
+            <input formControlName="provincia" class="input" [class.input-error]="f2['provincia'].invalid && f2['provincia'].touched" />
+          </div>
+          <div>
+            <label class="label">Calle <span class="text-error">*</span></label>
+            <input formControlName="calle" class="input" [class.input-error]="f2['calle'].invalid && f2['calle'].touched" />
+          </div>
+          <div>
+            <label class="label">Número <span class="text-error">*</span></label>
+            <input formControlName="numeracion" class="input" [class.input-error]="f2['numeracion'].invalid && f2['numeracion'].touched" />
+          </div>
+        </div>
+        <div>
+          <label class="label">CUIT del comercio</label>
+          <input formControlName="cuit" class="input" [class.input-error]="f2['cuit'].invalid && f2['cuit'].touched" placeholder="Opcional" />
+        </div>
+      </form>
+
+      <!-- Documentación -->
+      <div class="card p-6 mb-5">
+        <h2 class="font-display text-lg font-semibold text-ink mb-1">Documentación</h2>
+        <p class="text-sm text-muted mb-4">Podés reemplazar los documentos que hagan falta. Los que figuran como cargados ya están adjuntos.</p>
+        <div class="grid sm:grid-cols-2 gap-4">
+          @for (d of tiposDoc; track d.tipo) {
+            <div class="rounded-xl border border-hairline p-4">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-sm font-medium text-ink">{{ d.label }}</p>
+                @if (estaSubido(d.tipo)) {
+                  <span class="badge badge-success">Cargado</span>
+                } @else {
+                  <span class="badge badge-muted">Falta</span>
+                }
+              </div>
+              <p class="text-xs text-muted-soft mb-2">{{ d.hint }}</p>
+              <label class="btn btn-secondary btn-sm w-full cursor-pointer">
+                @if (subiendoDoc() === d.tipo) { Subiendo… }
+                @else { {{ estaSubido(d.tipo) ? 'Reemplazar' : 'Subir' }} }
+                <input type="file" class="hidden" [accept]="d.accept" (change)="onArchivo(d.tipo, $event)" />
+              </label>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button (click)="reenviar()" [disabled]="enviando()" class="btn btn-primary">
+          @if (enviando()) { Reenviando… } @else { Reenviar solicitud }
+        </button>
+      </div>
+    }
+  </div>
+</div>

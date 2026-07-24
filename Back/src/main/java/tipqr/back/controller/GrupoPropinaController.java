@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import tipqr.back.dto.AsignarEmpleadoRequest;
+import tipqr.back.dto.ConfigurarPorcentajesRequest;
 import tipqr.back.dto.GrupoPropinaRequest;
 import tipqr.back.dto.GrupoPropinaResponse;
 import tipqr.back.dto.MiembroGrupoResponse;
@@ -92,5 +93,26 @@ public class GrupoPropinaController {
             @AuthenticationPrincipal UserDetails user) {
         grupoService.removerEmpleado(id, empleadoId, user.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Distribución (equitativo / porcentajes) ─────────
+
+    /** Configura los porcentajes de reparto por miembro (deben sumar 100) y activa el modo PORCENTAJE. */
+    @PutMapping("/{id}/porcentajes")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<GrupoPropinaResponse> configurarPorcentajes(
+            @PathVariable Long id,
+            @Valid @RequestBody ConfigurarPorcentajesRequest request,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(grupoService.configurarPorcentajes(id, request, user.getUsername()));
+    }
+
+    /** Vuelve el grupo a reparto equitativo. */
+    @PutMapping("/{id}/equitativo")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<GrupoPropinaResponse> usarEquitativo(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(grupoService.usarEquitativo(id, user.getUsername()));
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import tipqr.back.dto.CrearNotificacionRequest;
+import tipqr.back.dto.NotificacionEnviadaResponse;
 import tipqr.back.dto.NotificacionResponse;
 import tipqr.back.dto.RedaccionNotificacionResponse;
 import tipqr.back.dto.RedactarNotificacionRequest;
@@ -53,6 +54,23 @@ public class NotificacionController {
         return ResponseEntity.ok(notificacionService.misNotificaciones(user.getUsername()));
     }
 
+    /** Notificaciones enviadas por el usuario (dueño/encargado), con estadística de lectura. */
+    @GetMapping("/enviadas")
+    @PreAuthorize("hasAnyRole('DUENO', 'ENCARGADO')")
+    public ResponseEntity<List<NotificacionEnviadaResponse>> enviadas(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(notificacionService.notificacionesEnviadas(user.getUsername()));
+    }
+
+    /** Elimina una notificación enviada (la borra para todos los destinatarios). */
+    @DeleteMapping("/enviadas/{id}")
+    @PreAuthorize("hasAnyRole('DUENO', 'ENCARGADO')")
+    public ResponseEntity<Void> eliminarEnviada(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        notificacionService.eliminarEnviada(id, user.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
     /** Cantidad de notificaciones no leídas (para el badge). */
     @GetMapping("/mias/no-leidas")
     public ResponseEntity<Map<String, Long>> noLeidas(@AuthenticationPrincipal UserDetails user) {
@@ -65,6 +83,15 @@ public class NotificacionController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails user) {
         notificacionService.marcarLeida(id, user.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Elimina la notificación de la bandeja del usuario. */
+    @DeleteMapping("/mias/{id}")
+    public ResponseEntity<Void> eliminar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        notificacionService.eliminarDeBandeja(id, user.getUsername());
         return ResponseEntity.noContent().build();
     }
 }

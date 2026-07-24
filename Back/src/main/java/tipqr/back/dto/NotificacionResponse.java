@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import tipqr.back.entity.Notificacion;
 import tipqr.back.entity.NotificacionDestinatario;
+import tipqr.back.entity.enums.OrigenNotificacion;
 
 import java.time.LocalDateTime;
 
@@ -26,10 +27,15 @@ public class NotificacionResponse {
 
     public static NotificacionResponse fromEntity(NotificacionDestinatario d) {
         Notificacion n = d.getNotificacion();
-        String emisor = n.getCreadoPor() != null
-                ? (n.getCreadoPor().getNombre() + " " +
-                   (n.getCreadoPor().getApellido() != null ? n.getCreadoPor().getApellido() : "")).trim()
-                : "TipQR";
+        // Los avisos automáticos (origen SISTEMA) figuran como "TipQR", no a nombre del dueño:
+        // no los envió una persona y no aparecen en la solapa "Enviadas" de nadie.
+        String emisor;
+        if (n.getOrigen() == OrigenNotificacion.SISTEMA || n.getCreadoPor() == null) {
+            emisor = "TipQR";
+        } else {
+            emisor = (n.getCreadoPor().getNombre() + " " +
+                    (n.getCreadoPor().getApellido() != null ? n.getCreadoPor().getApellido() : "")).trim();
+        }
         return NotificacionResponse.builder()
                 .id(d.getId())
                 .titulo(n.getTitulo())

@@ -2,6 +2,7 @@ package tipqr.back.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import tipqr.back.entity.enums.TipoDistribucion;
 
 import java.util.List;
 
@@ -26,6 +27,11 @@ public class GrupoPropina {
     private String descripcion;
 
     private String tipoGrupo;
+
+    /** Criterio de reparto de las propinas grupales de este grupo. */
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private TipoDistribucion tipoDistribucion = TipoDistribucion.EQUITATIVO;
 
     @Builder.Default
     private Boolean estado = true;

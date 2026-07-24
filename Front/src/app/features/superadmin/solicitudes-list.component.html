@@ -1,18 +1,28 @@
 <div>
-  <div class="mb-7">
+  <div class="mb-5">
     <span class="eyebrow">Validación</span>
-    <h1 class="mt-1.5 font-display text-3xl sm:text-4xl font-semibold text-ink">Solicitudes de alta</h1>
-    <p class="mt-1.5 text-sm text-muted">Comercios pendientes de validación</p>
+    <h1 class="mt-1.5 font-display text-3xl sm:text-4xl font-semibold text-ink">Cuentas de dueños</h1>
+    <p class="mt-1.5 text-sm text-muted">Solicitudes de alta de cuentas, por estado</p>
+  </div>
+
+  <!-- Filtro por estado -->
+  <div class="flex gap-2 mb-5">
+    @for (fi of filtros; track fi.valor) {
+      <button (click)="cambiarFiltro(fi.valor)" class="btn btn-sm"
+        [class.btn-primary]="estado() === fi.valor" [class.btn-secondary]="estado() !== fi.valor">
+        {{ fi.label }}
+      </button>
+    }
   </div>
 
   @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
 
   @if (loading()) {
-    <div class="text-center py-12 text-muted-soft text-sm">Cargando solicitudes...</div>
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando...</div>
   } @else if (solicitudes().length === 0) {
     <div class="card p-12 text-center">
-      <div class="mx-auto w-14 h-14 rounded-full bg-success-soft text-green-600 flex items-center justify-center text-2xl">✓</div>
-      <p class="mt-4 text-muted text-sm">No hay solicitudes pendientes. ¡Todo al día!</p>
+      <div class="mx-auto w-14 h-14 rounded-full bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">—</div>
+      <p class="mt-4 text-muted text-sm">No hay cuentas en este estado.</p>
     </div>
   } @else {
     <!-- Tabla (desktop) -->

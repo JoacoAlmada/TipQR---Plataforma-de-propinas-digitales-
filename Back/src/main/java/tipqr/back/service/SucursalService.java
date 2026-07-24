@@ -48,6 +48,8 @@ public class SucursalService {
                 .empresa(empresa)
                 .nombre(nombre)
                 .direccion(request.getDireccion())
+                .latitud(request.getLatitud())
+                .longitud(request.getLongitud())
                 .telefono(request.getTelefono())
                 .estado(true)
                 .build();
@@ -65,6 +67,8 @@ public class SucursalService {
 
         sucursal.setNombre(nombre);
         sucursal.setDireccion(request.getDireccion());
+        sucursal.setLatitud(request.getLatitud());
+        sucursal.setLongitud(request.getLongitud());
         sucursal.setTelefono(request.getTelefono());
         return SucursalResponse.fromEntity(sucursalRepository.save(sucursal));
     }

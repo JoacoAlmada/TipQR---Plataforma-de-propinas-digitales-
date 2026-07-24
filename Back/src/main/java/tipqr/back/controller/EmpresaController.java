@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tipqr.back.dto.EmpresaRequest;
 import tipqr.back.dto.EmpresaResponse;
 import tipqr.back.service.EmpresaService;
@@ -29,6 +30,51 @@ public class EmpresaController {
     @GetMapping("/mia")
     public ResponseEntity<EmpresaResponse> miEmpresa(@AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(empresaService.miEmpresa(user.getUsername()));
+    }
+
+    /** Todas las empresas que administra el dueño (marca la activa). */
+    @GetMapping("/mias")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<List<EmpresaResponse>> mias(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empresaService.misEmpresas(user.getUsername()));
+    }
+
+    /** Crea una empresa adicional y la deja activa. */
+    @PostMapping
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<EmpresaResponse> crear(
+            @Valid @RequestBody EmpresaRequest request,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(empresaService.crear(request, user.getUsername()));
+    }
+
+    /** Sube o reemplaza la constancia de AFIP de una empresa propia pendiente de validación. */
+    @PostMapping("/{id}/constancia")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<EmpresaResponse> subirConstancia(
+            @PathVariable Long id,
+            @RequestParam("archivo") MultipartFile archivo,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empresaService.subirConstancia(id, user.getUsername(), archivo));
+    }
+
+    /** Reenvía a validación una empresa rechazada (tras corregir datos/constancia). */
+    @PostMapping("/{id}/reenviar")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<EmpresaResponse> reenviar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empresaService.reenviarValidacion(id, user.getUsername()));
+    }
+
+    /** Cambia la empresa que el dueño está gestionando. */
+    @PutMapping("/{id}/activar")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<EmpresaResponse> activar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empresaService.cambiarActiva(id, user.getUsername()));
     }
 
     @GetMapping("/{id}")

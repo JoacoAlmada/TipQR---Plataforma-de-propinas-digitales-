@@ -52,4 +52,5 @@ export interface ReporteAutomatico {
   ticketPromedio: number | null;
   generadoPorIa: boolean;
   fecha: string | null;
+  fechaIso: string | null;
 }

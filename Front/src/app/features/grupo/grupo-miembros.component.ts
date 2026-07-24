@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { GrupoPropinaService } from '../../core/services/grupo-propina.service';
 import { EmpleadoService } from '../../core/services/empleado.service';
 import { AuthService } from '../../core/services/auth.service';
-import { GrupoPropina, MiembroGrupo } from '../../core/models/grupo-propina.model';
+import { GrupoPropina, MiembroGrupo, ItemPorcentaje } from '../../core/models/grupo-propina.model';
 import { Empleado } from '../../core/models/empleado.model';
 
 @Component({
@@ -26,6 +26,14 @@ export class GrupoMiembrosComponent implements OnInit {
   loading = signal(true);
   errorMsg = signal('');
   procesando = signal<number | null>(null);
+
+  // Distribución por porcentajes
+  editandoPct = signal(false);
+  pctInputs = signal<Record<number, number>>({});
+  distribGuardando = signal(false);
+  distribMsg = signal('');
+  sumaPct = computed(() =>
+    Object.values(this.pctInputs()).reduce((a, b) => a + (Number(b) || 0), 0));
 
   readonly esDueno = this.auth.hasRole('DUENO');
 
@@ -69,6 +77,62 @@ export class GrupoMiembrosComponent implements OnInit {
     this.grupoService.removerMiembro(this.grupoId, m.empleadoId).subscribe({
       next: () => { this.procesando.set(null); this.cargarMiembros(); },
       error: (err) => { this.procesando.set(null); this.errorMsg.set(err?.error?.error ?? 'No se pudo remover'); }
+    });
+  }
+
+  // ── Distribución por porcentajes ──
+
+  /** Abre el editor de porcentajes, precargando los actuales o un reparto equitativo. */
+  abrirPorcentajes(): void {
+    this.distribMsg.set('');
+    const ms = this.miembros();
+    const equit = ms.length ? Math.round((100 / ms.length) * 100) / 100 : 0;
+    const inputs: Record<number, number> = {};
+    ms.forEach(m => inputs[m.empleadoId] = m.porcentajeDistribucion ?? equit);
+    this.pctInputs.set(inputs);
+    this.editandoPct.set(true);
+  }
+
+  setPct(empleadoId: number, valor: string): void {
+    this.pctInputs.update(prev => ({ ...prev, [empleadoId]: Number(valor) }));
+  }
+
+  guardarPorcentajes(): void {
+    const porcentajes: ItemPorcentaje[] = this.miembros().map(m => ({
+      empleadoId: m.empleadoId,
+      porcentaje: Number(this.pctInputs()[m.empleadoId]) || 0
+    }));
+    this.distribMsg.set('');
+    this.distribGuardando.set(true);
+    this.grupoService.configurarPorcentajes(this.grupoId, porcentajes).subscribe({
+      next: (g) => {
+        this.distribGuardando.set(false);
+        this.grupo.set(g);
+        this.editandoPct.set(false);
+        this.cargarMiembros();
+        this.distribMsg.set('Porcentajes guardados. El grupo reparte por porcentaje.');
+      },
+      error: (err) => {
+        this.distribGuardando.set(false);
+        this.distribMsg.set(err?.error?.error ?? 'No se pudieron guardar los porcentajes.');
+      }
+    });
+  }
+
+  volverEquitativo(): void {
+    this.distribMsg.set('');
+    this.distribGuardando.set(true);
+    this.grupoService.usarEquitativo(this.grupoId).subscribe({
+      next: (g) => {
+        this.distribGuardando.set(false);
+        this.grupo.set(g);
+        this.editandoPct.set(false);
+        this.distribMsg.set('El grupo reparte en partes iguales.');
+      },
+      error: () => {
+        this.distribGuardando.set(false);
+        this.distribMsg.set('No se pudo cambiar el modo.');
+      }
     });
   }
 }

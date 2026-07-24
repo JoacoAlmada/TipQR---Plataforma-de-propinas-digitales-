@@ -3,6 +3,7 @@ export interface GrupoPropina {
   nombre: string;
   descripcion: string | null;
   tipoGrupo: string | null;
+  tipoDistribucion: 'EQUITATIVO' | 'PORCENTAJE' | null;
   estado: boolean;
   sucursalId: number;
   sucursalNombre: string;
@@ -21,4 +22,10 @@ export interface MiembroGrupo {
   apellido: string;
   email: string;
   puesto: string | null;
+  porcentajeDistribucion: number | null;
+}
+
+export interface ItemPorcentaje {
+  empleadoId: number;
+  porcentaje: number;
 }

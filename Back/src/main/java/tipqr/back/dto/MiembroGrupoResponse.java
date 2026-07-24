@@ -16,6 +16,7 @@ public class MiembroGrupoResponse {
     private String apellido;
     private String email;
     private String puesto;
+    private Double porcentajeDistribucion;
 
     public static MiembroGrupoResponse fromEntity(GrupoPropinaEmpleado gpe) {
         Empleado e = gpe.getEmpleado();
@@ -25,6 +26,7 @@ public class MiembroGrupoResponse {
                 .apellido(e.getUsuario() != null ? e.getUsuario().getApellido() : null)
                 .email(e.getUsuario() != null ? e.getUsuario().getEmail() : null)
                 .puesto(e.getPuesto())
+                .porcentajeDistribucion(gpe.getPorcentajeDistribucion())
                 .build();
     }
 }

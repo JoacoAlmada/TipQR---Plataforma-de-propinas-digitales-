@@ -7,10 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tipqr.back.dto.EmpleadoRequest;
 import tipqr.back.dto.EmpleadoResponse;
+import tipqr.back.dto.MiDocumentoResponse;
 import tipqr.back.dto.SucursalResponse;
+import tipqr.back.entity.DocumentoRegistro;
+import tipqr.back.entity.enums.TipoDocumento;
 import tipqr.back.service.EmpleadoService;
 
 import java.util.List;
@@ -77,5 +82,38 @@ public class EmpleadoController {
             @RequestParam boolean estado,
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(empleadoService.cambiarEstado(id, estado, user.getUsername()));
+    }
+
+    // ── Documentación del empleado (DNI frente/dorso, selfie) ──
+
+    /** Estado de los documentos del empleado. */
+    @GetMapping("/{id}/documentos")
+    public ResponseEntity<List<MiDocumentoResponse>> documentos(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empleadoService.documentos(id, user.getUsername()));
+    }
+
+    /** Binario de una foto del empleado para previsualizar. */
+    @GetMapping("/{id}/documentos/{tipo}/archivo")
+    public ResponseEntity<byte[]> archivo(
+            @PathVariable Long id,
+            @PathVariable TipoDocumento tipo,
+            @AuthenticationPrincipal UserDetails user) {
+        DocumentoRegistro doc = empleadoService.archivo(id, tipo, user.getUsername());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(doc.getContentType()))
+                .body(doc.getDatos());
+    }
+
+    /** Sube o reemplaza una foto del empleado. */
+    @PostMapping("/{id}/documentos")
+    @PreAuthorize("hasRole('DUENO')")
+    public ResponseEntity<MiDocumentoResponse> subirDocumento(
+            @PathVariable Long id,
+            @RequestParam TipoDocumento tipo,
+            @RequestParam("archivo") MultipartFile archivo,
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(empleadoService.subirDocumento(id, tipo, archivo, user.getUsername()));
     }
 }

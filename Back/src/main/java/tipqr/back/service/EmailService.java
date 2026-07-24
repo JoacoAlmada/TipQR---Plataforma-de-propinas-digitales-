@@ -22,6 +22,9 @@ public class EmailService {
     @Value("${app.backend-url}")
     private String backendUrl;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     /**
      * Envía el email de verificación con el link para activar la cuenta.
      */
@@ -46,23 +49,40 @@ public class EmailService {
     }
 
     /**
-     * Notifica al dueño el resultado de la validación de su cuenta.
+     * Notifica al dueño el resultado de la validación de su cuenta. Si fue rechazada, incluye un
+     * botón para retomar el formulario, corregir y reenviar (usando el token de registro).
      */
-    public void enviarResultadoValidacion(String destinatario, String nombre, boolean aprobada, String motivo) {
+    public void enviarResultadoValidacion(String destinatario, String nombre, boolean aprobada,
+                                          String motivo, String tokenRegistro) {
         String titulo = aprobada ? "¡Tu cuenta fue aprobada!" : "Tu solicitud fue rechazada";
         String cuerpo = aprobada
                 ? "Ya podés ingresar a TipQR y empezar a administrar tu comercio."
                 : "Revisamos tu solicitud y no pudimos aprobarla." +
-                  (motivo != null && !motivo.isBlank() ? " Motivo: " + motivo : "");
+                  (motivo != null && !motivo.isBlank() ? " <strong>Motivo:</strong> " + motivo : "");
         String color = aprobada ? "#16a34a" : "#dc2626";
+
+        String accion = "";
+        if (!aprobada && tokenRegistro != null) {
+            String link = frontendUrl + "/registro/corregir?token=" + tokenRegistro;
+            accion = """
+                    <p>Podés corregir lo que haga falta y reenviar tu solicitud:</p>
+                    <p style="text-align:center;margin:28px 0">
+                      <a href="%s" style="background:#640000;color:#fff;text-decoration:none;
+                         padding:12px 24px;border-radius:10px;font-weight:600">Corregir y reenviar</a>
+                    </p>
+                    <p style="color:#6b6266;font-size:13px">Si el botón no funciona, copiá este link:<br>%s</p>
+                    """.formatted(link, link);
+        }
+
         String html = """
                 <div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#040b15">
                   <h2 style="color:#640000">TipQR</h2>
                   <p>Hola %s,</p>
                   <h3 style="color:%s">%s</h3>
                   <p>%s</p>
+                  %s
                 </div>
-                """.formatted(nombre, color, titulo, cuerpo);
+                """.formatted(nombre, color, titulo, cuerpo, accion);
 
         enviar(destinatario, titulo + " — TipQR", html, "resultado de validación");
     }

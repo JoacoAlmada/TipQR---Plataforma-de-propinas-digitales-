@@ -139,7 +139,9 @@ public class PagoService {
             return;
         }
 
-        OrdenPropina orden = ordenRepository.findByCodigo(ordenCodigo).orElse(null);
+        // Lock de fila: si el webhook y el retorno llegan juntos, uno espera al otro; así la
+        // orden se concilia y se notifica una sola vez.
+        OrdenPropina orden = ordenRepository.findByCodigoParaConciliar(ordenCodigo).orElse(null);
         if (orden == null) {
             log.warn("Notificación MP ({}) para orden inexistente {}", origen, ordenCodigo);
             return;

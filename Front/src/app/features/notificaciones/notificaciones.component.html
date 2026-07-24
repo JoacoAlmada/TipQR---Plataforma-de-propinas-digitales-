@@ -49,13 +49,40 @@
         </div>
         <div>
           <label class="label">Destinatarios</label>
-          <select class="input w-full sm:w-72"
-            (change)="sucursalId.set($any($event.target).value ? +$any($event.target).value : null)">
-            <option value="">Toda la empresa</option>
-            @for (s of sucursales(); track s.id) {
-              <option [value]="s.id">Solo {{ s.nombre }}</option>
-            }
+          <select class="input w-full sm:w-72" (change)="setDestinatario($any($event.target).value)">
+            <option value="EMPRESA">Toda la empresa</option>
+            <option value="SUCURSAL">Una sucursal</option>
+            <option value="TURNO">Un turno activo</option>
+            <option value="ROL">Un rol</option>
           </select>
+
+          @if (destinatario() === 'SUCURSAL') {
+            <select class="input w-full sm:w-72 mt-2"
+              (change)="sucursalId.set($any($event.target).value ? +$any($event.target).value : null)">
+              <option value="">Elegí una sucursal…</option>
+              @for (s of sucursales(); track s.id) { <option [value]="s.id">{{ s.nombre }}</option> }
+            </select>
+          }
+          @if (destinatario() === 'TURNO') {
+            @if (turnos().length === 0) {
+              <p class="text-xs text-muted-soft mt-2">No hay turnos abiertos en este momento.</p>
+            } @else {
+              <select class="input w-full sm:w-72 mt-2"
+                (change)="turnoId.set($any($event.target).value ? +$any($event.target).value : null)">
+                <option value="">Elegí un turno…</option>
+                @for (t of turnos(); track t.id) {
+                  <option [value]="t.id">{{ t.sucursalNombre }} — {{ t.grupoNombre }}{{ t.nombre ? ' (' + t.nombre + ')' : '' }}</option>
+                }
+              </select>
+            }
+          }
+          @if (destinatario() === 'ROL') {
+            <select class="input w-full sm:w-72 mt-2" (change)="rol.set($any($event.target).value || null)">
+              <option value="">Elegí un rol…</option>
+              <option value="ENCARGADO">Encargados</option>
+              <option value="EMPLEADO">Empleados</option>
+            </select>
+          }
         </div>
         <button (click)="enviar()" [disabled]="enviando()" class="btn btn-primary">
           @if (enviando()) { Enviando… } @else { Enviar aviso }
@@ -64,31 +91,110 @@
     </div>
   }
 
+  <!-- Solapas Recibidas / Enviadas (solo dueño/encargado; el empleado solo recibe) -->
+  @if (puedeEnviar) {
+    <div class="flex gap-2 mb-5">
+      <button (click)="vista.set('recibidas')" class="btn btn-sm"
+        [class.btn-primary]="vista() === 'recibidas'" [class.btn-secondary]="vista() !== 'recibidas'">
+        Recibidas
+      </button>
+      <button (click)="vista.set('enviadas')" class="btn btn-sm"
+        [class.btn-primary]="vista() === 'enviadas'" [class.btn-secondary]="vista() !== 'enviadas'">
+        Enviadas@if (enviadas().length) { <span class="ml-1 opacity-70">({{ enviadas().length }})</span> }
+      </button>
+    </div>
+  }
+
   <!-- Bandeja -->
   @if (loading()) {
     <div class="text-center py-12 text-muted-soft text-sm">Cargando…</div>
-  } @else if (notificaciones().length === 0) {
-    <div class="card p-12 text-center">
-      <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">🔔</div>
-      <p class="mt-4 text-muted text-sm">No tenés notificaciones.</p>
-    </div>
   } @else {
-    <div class="space-y-3">
-      @for (n of notificaciones(); track n.id) {
-        <div (click)="marcarLeida(n)"
-          class="card p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-all"
-          [class.border-l-4]="!n.leida" [class.border-l-primary]="!n.leida">
-          <span class="text-2xl shrink-0">{{ icono(n.categoria) }}</span>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <p class="font-medium text-ink" [class.font-semibold]="!n.leida">{{ n.titulo }}</p>
-              @if (!n.leida) { <span class="badge badge-accent">Nueva</span> }
+
+    <!-- Buscador, filtro por fecha y orden (compartido por ambas solapas) -->
+    @if ((vista() === 'recibidas' ? notificaciones().length : enviadas().length) > 0) {
+      <div class="card p-4 mb-4 flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-48">
+          <label class="label">Buscar</label>
+          <input class="input" placeholder="Título o mensaje…"
+            [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+        </div>
+        <div>
+          <label class="label">Desde</label>
+          <input type="date" class="input" [value]="desde()" (input)="desde.set($any($event.target).value)" />
+        </div>
+        <div>
+          <label class="label">Hasta</label>
+          <input type="date" class="input" [value]="hasta()" (input)="hasta.set($any($event.target).value)" />
+        </div>
+        <div>
+          <label class="label">Orden</label>
+          <select class="input" (change)="orden.set($any($event.target).value)">
+            <option value="desc">Más recientes</option>
+            <option value="asc">Más antiguas</option>
+          </select>
+        </div>
+      </div>
+    }
+
+    @if (vista() === 'recibidas') {
+      <!-- ── RECIBIDAS ── -->
+      @if (notificaciones().length === 0) {
+        <div class="card p-12 text-center">
+          <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">🔔</div>
+          <p class="mt-4 text-muted text-sm">No tenés notificaciones recibidas.</p>
+        </div>
+      } @else if (notificacionesFiltradas().length === 0) {
+        <div class="card p-10 text-center text-muted text-sm">No hay notificaciones que coincidan con el filtro.</div>
+      } @else {
+        <div class="space-y-3">
+          @for (n of notificacionesFiltradas(); track n.id) {
+            <div (click)="marcarLeida(n)"
+              class="card p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-all"
+              [class.border-l-4]="!n.leida" [class.border-l-primary]="!n.leida">
+              <span class="text-2xl shrink-0">{{ icono(n.categoria) }}</span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-medium text-ink" [class.font-semibold]="!n.leida">{{ n.titulo }}</p>
+                  @if (!n.leida) { <span class="badge badge-accent">Nueva</span> }
+                </div>
+                <p class="mt-1 text-sm text-body">{{ n.mensaje }}</p>
+                <p class="mt-2 text-xs text-muted-soft">De {{ n.emisor }} · {{ fechaLegible(n.fecha) }}</p>
+              </div>
+              <button (click)="eliminar(n, $event)" title="Eliminar"
+                class="text-muted-soft hover:text-error hover:bg-error-soft px-2 py-1 rounded-lg transition-colors shrink-0">✕</button>
             </div>
-            <p class="mt-1 text-sm text-body">{{ n.mensaje }}</p>
-            <p class="mt-2 text-xs text-muted-soft">De {{ n.emisor }} · {{ n.fecha }}</p>
-          </div>
+          }
         </div>
       }
-    </div>
+    } @else {
+      <!-- ── ENVIADAS ── -->
+      @if (enviadas().length === 0) {
+        <div class="card p-12 text-center">
+          <div class="mx-auto w-12 h-12 rounded-xl bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">📤</div>
+          <p class="mt-4 text-muted text-sm">Todavía no enviaste avisos.</p>
+        </div>
+      } @else if (enviadasFiltradas().length === 0) {
+        <div class="card p-10 text-center text-muted text-sm">No hay avisos que coincidan con el filtro.</div>
+      } @else {
+        <div class="space-y-3">
+          @for (n of enviadasFiltradas(); track n.id) {
+            <div class="card p-4 sm:p-5 flex items-start gap-4">
+              <span class="text-2xl shrink-0">{{ icono(n.categoria) }}</span>
+              <div class="min-w-0 flex-1">
+                <p class="font-medium text-ink">{{ n.titulo }}</p>
+                <p class="mt-1 text-sm text-body">{{ n.mensaje }}</p>
+                <div class="mt-2 flex items-center gap-2 flex-wrap text-xs text-muted-soft">
+                  <span class="badge badge-muted">{{ n.destino }}</span>
+                  <span>👁 {{ n.leidas }}/{{ n.destinatarios }} leídas</span>
+                  <span>· {{ fechaLegible(n.fecha) }}</span>
+                </div>
+              </div>
+              <button (click)="eliminarEnviada(n, $event)" title="Eliminar para todos"
+                class="text-muted-soft hover:text-error hover:bg-error-soft px-2 py-1 rounded-lg transition-colors shrink-0">✕</button>
+            </div>
+          }
+        </div>
+      }
+    }
   }
 </div>

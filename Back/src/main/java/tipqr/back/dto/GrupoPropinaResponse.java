@@ -14,6 +14,7 @@ public class GrupoPropinaResponse {
     private String nombre;
     private String descripcion;
     private String tipoGrupo;
+    private String tipoDistribucion;
     private Boolean estado;
     private Long sucursalId;
     private String sucursalNombre;
@@ -24,6 +25,7 @@ public class GrupoPropinaResponse {
                 .nombre(g.getNombre())
                 .descripcion(g.getDescripcion())
                 .tipoGrupo(g.getTipoGrupo())
+                .tipoDistribucion(g.getTipoDistribucion() != null ? g.getTipoDistribucion().name() : null)
                 .estado(g.getEstado())
                 .sucursalId(g.getSucursal() != null ? g.getSucursal().getId() : null)
                 .sucursalNombre(g.getSucursal() != null ? g.getSucursal().getNombre() : null)

@@ -52,6 +52,10 @@ public class Usuario {
     /** Token de verificación de email (se limpia al verificar). */
     private String emailToken;
 
+    /** Motivo cuando el superadmin rechaza la cuenta (para poder corregir y reenviar). */
+    @Column(columnDefinition = "TEXT")
+    private String motivoRechazo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;

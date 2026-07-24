@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tipqr.back.entity.*;
 import tipqr.back.entity.enums.EstadoOrden;
+import tipqr.back.entity.enums.TipoDistribucion;
 import tipqr.back.entity.enums.TipoEventoOrden;
 import tipqr.back.entity.enums.TipoPropina;
 import tipqr.back.repository.DistribucionPropinaRepository;
@@ -43,6 +44,17 @@ class DistribucionServiceTest {
     private GrupoPropinaEmpleado miembro(long id, String nombre) {
         Empleado e = Empleado.builder().id(id).nombreVisible(nombre).sucursal(sucursal).build();
         return GrupoPropinaEmpleado.builder().empleado(e).activo(true).build();
+    }
+
+    private GrupoPropinaEmpleado miembroPct(long id, String nombre, Double pct) {
+        Empleado e = Empleado.builder().id(id).nombreVisible(nombre).sucursal(sucursal).build();
+        return GrupoPropinaEmpleado.builder().empleado(e).activo(true).porcentajeDistribucion(pct).build();
+    }
+
+    private OrdenPropina ordenGrupalDe(GrupoPropina g, String monto) {
+        return OrdenPropina.builder().id(100L).codigo("ORD1").sucursal(sucursal)
+                .tipoPropina(TipoPropina.GRUPAL).grupoPropina(g).monto(new BigDecimal(monto))
+                .estado(EstadoOrden.PAGADA).build();
     }
 
     private OrdenPropina ordenGrupal(String monto) {
@@ -87,6 +99,44 @@ class DistribucionServiceTest {
         assertEquals(0, ds.get(0).getMontoAsignado().compareTo(new BigDecimal("333.34")));
         assertEquals(0, ds.get(1).getMontoAsignado().compareTo(new BigDecimal("333.33")));
         assertEquals(0, ds.get(2).getMontoAsignado().compareTo(new BigDecimal("333.33")));
+    }
+
+    @Test
+    void distribuir_porPorcentaje_repartoSegunElPorcentajeDeCadaMiembro() {
+        GrupoPropina g = GrupoPropina.builder().id(30L).sucursal(sucursal).nombre("Equipo Noche")
+                .tipoDistribucion(TipoDistribucion.PORCENTAJE).build();
+        when(distribucionRepository.existsByOrdenPropinaId(100L)).thenReturn(false);
+        when(miembroRepository.findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(30L))
+                .thenReturn(List.of(miembroPct(1, "Ana", 70.0), miembroPct(2, "Beto", 30.0)));
+
+        distribucionService.distribuir(ordenGrupalDe(g, "1000.00"));
+
+        ArgumentCaptor<DistribucionPropina> cap = ArgumentCaptor.forClass(DistribucionPropina.class);
+        verify(distribucionRepository, times(2)).save(cap.capture());
+        List<DistribucionPropina> ds = cap.getAllValues();
+        assertEquals(0, ds.get(0).getMontoAsignado().compareTo(new BigDecimal("700.00")));
+        assertEquals(0, ds.get(1).getMontoAsignado().compareTo(new BigDecimal("300.00")));
+        assertEquals("PORCENTAJE", ds.get(0).getCriterio());
+        BigDecimal total = ds.stream().map(DistribucionPropina::getMontoAsignado)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        assertEquals(0, total.compareTo(new BigDecimal("1000.00")));
+    }
+
+    @Test
+    void distribuir_porcentajeIncompleto_caeAEquitativo() {
+        GrupoPropina g = GrupoPropina.builder().id(30L).sucursal(sucursal).nombre("Equipo Noche")
+                .tipoDistribucion(TipoDistribucion.PORCENTAJE).build();
+        when(distribucionRepository.existsByOrdenPropinaId(100L)).thenReturn(false);
+        when(miembroRepository.findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(30L))
+                .thenReturn(List.of(miembroPct(1, "Ana", 70.0), miembro(2, "Beto"))); // Beto sin %
+
+        distribucionService.distribuir(ordenGrupalDe(g, "1000.00"));
+
+        ArgumentCaptor<DistribucionPropina> cap = ArgumentCaptor.forClass(DistribucionPropina.class);
+        verify(distribucionRepository, times(2)).save(cap.capture());
+        List<DistribucionPropina> ds = cap.getAllValues();
+        ds.forEach(d -> assertEquals(0, d.getMontoAsignado().compareTo(new BigDecimal("500.00"))));
+        assertEquals("EQUITATIVO", ds.get(0).getCriterio());
     }
 
     @Test

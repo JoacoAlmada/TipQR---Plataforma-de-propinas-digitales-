@@ -31,6 +31,34 @@ export interface RegistroPaso2 {
 
 export type TipoDocumento = 'DNI_FRENTE' | 'DNI_DORSO' | 'SELFIE' | 'CONSTANCIA_AFIP';
 
+export interface RegistroResumen {
+  registroToken: string;
+  estadoCuenta: string;
+  motivoRechazo: string | null;
+  nombre: string;
+  apellido: string;
+  email: string;
+  telefono: string;
+  cuit: string;
+  dni: string;
+  nombreEmpresa: string | null;
+  nombreFantasia: string | null;
+  provincia: string | null;
+  calle: string | null;
+  numeracion: string | null;
+  empresaCuit: string | null;
+  rubro: string | null;
+  documentosCargados: TipoDocumento[];
+}
+
+export interface RegistroDatos {
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  cuit: string;
+  dni: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RegistroService {
   private readonly http = inject(HttpClient);
@@ -65,5 +93,17 @@ export class RegistroService {
   finalizar(token: string): Observable<void> {
     const params = new HttpParams().set('token', token);
     return this.http.post<void>(`${this.API}/finalizar`, null, { params });
+  }
+
+  /** Datos del registro para retomarlo tras un rechazo. */
+  resumen(token: string): Observable<RegistroResumen> {
+    const params = new HttpParams().set('token', token);
+    return this.http.get<RegistroResumen>(`${this.API}/resumen`, { params });
+  }
+
+  /** Corrige los datos personales del dueño al retomar el registro. */
+  actualizarDatos(token: string, body: RegistroDatos): Observable<void> {
+    const params = new HttpParams().set('token', token);
+    return this.http.put<void>(`${this.API}/datos`, body, { params });
   }
 }

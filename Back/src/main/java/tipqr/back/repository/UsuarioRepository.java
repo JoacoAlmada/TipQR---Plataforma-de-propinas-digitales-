@@ -24,6 +24,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     List<Usuario> findByEstadoCuentaOrderByFechaCreacionDesc(EstadoCuenta estadoCuenta);
 
+    /** Cuentas de dueño en un estado (solo los dueños se auto-registran con documentos). */
+    List<Usuario> findByRolAndEstadoCuentaOrderByFechaCreacionDesc(Rol rol, EstadoCuenta estadoCuenta);
+
     // Emisor de los avisos automáticos: el dueño de la empresa.
     Optional<Usuario> findFirstByEmpresa_IdAndRolOrderByIdAsc(Long empresaId, Rol rol);
 }

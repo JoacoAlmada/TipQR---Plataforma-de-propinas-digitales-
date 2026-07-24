@@ -15,6 +15,10 @@ public class SucursalRequest {
     @Size(max = 160, message = "La dirección no puede superar los 160 caracteres")
     private String direccion;
 
+    private Double latitud;
+
+    private Double longitud;
+
     @Size(max = 30, message = "El teléfono no puede superar los 30 caracteres")
     private String telefono;
 }

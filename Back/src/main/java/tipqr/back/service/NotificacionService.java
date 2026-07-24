@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tipqr.back.dto.CrearNotificacionRequest;
+import tipqr.back.dto.NotificacionEnviadaResponse;
 import tipqr.back.dto.NotificacionResponse;
 import tipqr.back.entity.*;
 import tipqr.back.entity.enums.CategoriaNotificacion;
@@ -30,6 +31,8 @@ public class NotificacionService {
     private final EmpleadoRepository empleadoRepository;
     private final SucursalRepository sucursalRepository;
     private final UsuarioRepository usuarioRepository;
+    private final TurnoRepository turnoRepository;
+    private final GrupoPropinaEmpleadoRepository miembroRepository;
 
     // ── Envío manual ──────────────────────────────────────────────────────────
 
@@ -39,9 +42,24 @@ public class NotificacionService {
         Usuario emisor = usuario(emailEmisor);
         Empresa empresa = empresaDe(emisor);
 
+        // Segmentación del destinatario: se aplica la primera opción informada
+        // (turno → rol → sucursal → toda la empresa).
         Sucursal sucursal = null;
         List<Empleado> destinatarios;
-        if (req.getSucursalId() != null) {
+        if (req.getTurnoId() != null) {
+            Turno turno = turnoRepository.findByIdAndSucursal_Empresa_Id(req.getTurnoId(), empresa.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Turno", req.getTurnoId()));
+            sucursal = turno.getSucursal();
+            destinatarios = miembroRepository
+                    .findByGrupoPropinaIdOrderByEmpleado_NombreVisibleAsc(turno.getGrupoPropina().getId())
+                    .stream()
+                    .filter(m -> Boolean.TRUE.equals(m.getActivo()))
+                    .map(GrupoPropinaEmpleado::getEmpleado)
+                    .toList();
+        } else if (req.getRol() != null) {
+            destinatarios = empleadoRepository
+                    .findBySucursal_Empresa_IdAndUsuario_RolOrderByNombreVisibleAsc(empresa.getId(), req.getRol());
+        } else if (req.getSucursalId() != null) {
             sucursal = sucursalRepository.findByIdAndEmpresaId(req.getSucursalId(), empresa.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Sucursal", req.getSucursalId()));
             destinatarios = empleadoRepository.findBySucursalIdOrderByNombreVisibleAsc(sucursal.getId());
@@ -95,6 +113,30 @@ public class NotificacionService {
         crearDestinatario(notif, empleado.getUsuario());
     }
 
+    /** Avisa al dueño el resultado de la validación de una empresa que dio de alta. */
+    @Transactional
+    public void notificarValidacionEmpresa(Empresa empresa, boolean aprobada, String motivo) {
+        Usuario duenio = empresa.getPropietario();
+        if (duenio == null) return;
+
+        String titulo = aprobada ? "Empresa aprobada ✔" : "Empresa rechazada";
+        String mensaje = aprobada
+                ? "Tu empresa \"" + empresa.getNombre() + "\" fue aprobada. Ya podés gestionarla desde Mis empresas."
+                : "Tu empresa \"" + empresa.getNombre() + "\" fue rechazada."
+                    + (motivo != null && !motivo.isBlank() ? " Motivo: " + motivo : "");
+
+        Notificacion notif = notificacionRepository.save(Notificacion.builder()
+                .empresa(empresa)
+                .creadoPor(duenio)
+                .titulo(titulo)
+                .mensaje(mensaje)
+                .categoria(CategoriaNotificacion.GENERAL)
+                .prioridad(PrioridadNotificacion.ALTA)
+                .origen(OrigenNotificacion.SISTEMA)
+                .build());
+        crearDestinatario(notif, duenio);
+    }
+
     // ── Bandeja del usuario ───────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -103,6 +145,27 @@ public class NotificacionService {
         return destinatarioRepository
                 .findByUsuarioIdOrderByLeidaAscNotificacion_FechaCreacionDesc(u.getId())
                 .stream().map(NotificacionResponse::fromEntity).toList();
+    }
+
+    /** Notificaciones que el usuario envió, con estadística de lectura. */
+    @Transactional(readOnly = true)
+    public List<NotificacionEnviadaResponse> notificacionesEnviadas(String emailUsuario) {
+        Usuario u = usuario(emailUsuario);
+        return notificacionRepository
+                .findByCreadoPor_IdAndOrigenNotOrderByFechaCreacionDesc(u.getId(), OrigenNotificacion.SISTEMA)
+                .stream().map(NotificacionEnviadaResponse::fromEntity).toList();
+    }
+
+    /** Borra una notificación que el usuario envió (elimina la copia de todos los destinatarios). */
+    @Transactional
+    public void eliminarEnviada(Long notificacionId, String emailUsuario) {
+        Usuario u = usuario(emailUsuario);
+        Notificacion n = notificacionRepository.findById(notificacionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notificación", notificacionId));
+        if (n.getCreadoPor() == null || !n.getCreadoPor().getId().equals(u.getId())) {
+            throw new ResourceNotFoundException("Notificación", notificacionId);
+        }
+        notificacionRepository.delete(n);
     }
 
     @Transactional(readOnly = true)
@@ -121,6 +184,16 @@ public class NotificacionService {
             d.setFechaLectura(LocalDateTime.now());
             destinatarioRepository.save(d);
         }
+    }
+
+    /** Elimina la notificación de la bandeja del usuario (borra su copia). */
+    @Transactional
+    public void eliminarDeBandeja(Long destinatarioId, String emailUsuario) {
+        Usuario u = usuario(emailUsuario);
+        NotificacionDestinatario d = destinatarioRepository
+                .findByIdAndUsuarioId(destinatarioId, u.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Notificación", destinatarioId));
+        destinatarioRepository.delete(d);
     }
 
     // ── Helpers ─────────────────────────────────────────

@@ -24,8 +24,35 @@
       <p class="mt-4 text-muted text-sm">Todavía no generaste reportes. Tocá "Generar resumen" para crear el primero.</p>
     </div>
   } @else {
+    <!-- Buscador, filtro por fecha y orden -->
+    <div class="card p-4 mb-4 flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-48">
+        <label class="label">Buscar</label>
+        <input class="input" placeholder="Título o contenido…"
+          [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="label">Desde</label>
+        <input type="date" class="input" [value]="desde()" (input)="desde.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="label">Hasta</label>
+        <input type="date" class="input" [value]="hasta()" (input)="hasta.set($any($event.target).value)" />
+      </div>
+      <div>
+        <label class="label">Orden</label>
+        <select class="input" (change)="orden.set($any($event.target).value)">
+          <option value="desc">Más recientes</option>
+          <option value="asc">Más antiguos</option>
+        </select>
+      </div>
+    </div>
+
+    @if (reportesFiltrados().length === 0) {
+      <div class="card p-10 text-center text-muted text-sm">No hay reportes que coincidan con el filtro.</div>
+    } @else {
     <div class="space-y-4">
-      @for (r of reportes(); track r.id) {
+      @for (r of reportesFiltrados(); track r.id) {
         <div class="card p-5 sm:p-6">
           <div class="flex items-center gap-2 flex-wrap mb-1">
             <h2 class="font-display text-lg font-semibold text-ink">{{ r.titulo }}</h2>
@@ -34,6 +61,10 @@
             } @else {
               <span class="badge">Local</span>
             }
+            <button (click)="exportarPdf(r)" title="Exportar a PDF"
+              class="ml-auto btn btn-secondary btn-sm">⬇ PDF</button>
+            <button (click)="eliminar(r)" title="Eliminar"
+              class="text-muted-soft hover:text-error hover:bg-error-soft px-2 py-1 rounded-lg transition-colors">✕</button>
           </div>
           <p class="text-xs text-muted-soft mb-4">{{ r.fecha }}</p>
 
@@ -52,9 +83,10 @@
             </div>
           </div>
 
-          <p class="text-sm text-body whitespace-pre-line leading-relaxed">{{ r.contenido }}</p>
+          <div class="text-sm text-body" [innerHTML]="render(r.contenido)"></div>
         </div>
       }
     </div>
+    }
   }
 </div>

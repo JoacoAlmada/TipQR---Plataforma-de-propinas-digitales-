@@ -3,6 +3,7 @@ package tipqr.back.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import tipqr.back.entity.enums.EstadoValidacionEmpresa;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +41,33 @@ public class Empresa {
 
     @Builder.Default
     private Boolean estado = true;
+
+    /**
+     * Validación de la empresa. Por defecto APROBADA (registro, seed y las que ya operaban);
+     * las que da de alta un dueño desde "Mi empresa" nacen PENDIENTE hasta que el superadmin
+     * las revise.
+     */
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private EstadoValidacionEmpresa estadoValidacion = EstadoValidacionEmpresa.APROBADA;
+
+    /** Motivo cuando el superadmin la rechaza. */
+    @Column(columnDefinition = "TEXT")
+    private String motivoRechazo;
+
+    // Constancia de AFIP de la empresa (para las altas que requieren validación).
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] constanciaDatos;
+
+    private String constanciaNombre;
+
+    private String constanciaContentType;
+
+    /** Dueño propietario de la empresa (un dueño puede tener varias). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "propietario_usuario_id")
+    private Usuario propietario;
 
     @CreationTimestamp
     private LocalDateTime fechaCreacion;

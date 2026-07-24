@@ -1,0 +1,77 @@
+<div>
+  <div class="mb-5">
+    <span class="eyebrow">Validación</span>
+    <h1 class="mt-1.5 font-display text-3xl sm:text-4xl font-semibold text-ink">Empresas nuevas</h1>
+    <p class="mt-1.5 text-sm text-muted">Altas de empresas de dueños ya validados, por estado</p>
+  </div>
+
+  <!-- Filtro por estado -->
+  <div class="flex gap-2 mb-5">
+    @for (fi of filtros; track fi.valor) {
+      <button (click)="cambiarFiltro(fi.valor)" class="btn btn-sm"
+        [class.btn-primary]="estado() === fi.valor" [class.btn-secondary]="estado() !== fi.valor">
+        {{ fi.label }}
+      </button>
+    }
+  </div>
+
+  @if (errorMsg()) { <div class="alert-error mb-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando empresas...</div>
+  } @else if (empresas().length === 0) {
+    <div class="card p-12 text-center">
+      <div class="mx-auto w-14 h-14 rounded-full bg-surface-soft text-muted-soft flex items-center justify-center text-2xl">—</div>
+      <p class="mt-4 text-muted text-sm">No hay empresas en este estado.</p>
+    </div>
+  } @else {
+    <!-- Tabla (desktop) -->
+    <div class="card overflow-hidden hidden md:block">
+      <table class="w-full text-sm">
+        <thead class="bg-surface-soft text-muted text-left">
+          <tr>
+            <th class="px-4 py-3 font-medium">Empresa</th>
+            <th class="px-4 py-3 font-medium">Propietario</th>
+            <th class="px-4 py-3 font-medium">CUIT</th>
+            <th class="px-4 py-3 font-medium">Constancia</th>
+            <th class="px-4 py-3 font-medium">Fecha</th>
+            <th class="px-4 py-3 font-medium text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hairline">
+          @for (e of empresas(); track e.id) {
+            <tr class="hover:bg-canvas transition-colors">
+              <td class="px-4 py-3 font-medium text-ink">{{ e.nombre }}</td>
+              <td class="px-4 py-3 text-body">{{ e.propietarioNombre }} {{ e.propietarioApellido }}</td>
+              <td class="px-4 py-3 text-body">{{ e.cuit || '—' }}</td>
+              <td class="px-4 py-3">
+                @if (e.constanciaCargada) {
+                  <span class="badge badge-success">Cargada</span>
+                } @else {
+                  <span class="badge badge-muted">Falta</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-muted">{{ e.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="px-4 py-3 text-right">
+                <a [routerLink]="['/superadmin/empresas', e.id]" class="btn btn-primary btn-sm">Revisar</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tarjetas (mobile) -->
+    <div class="grid gap-3 md:hidden">
+      @for (e of empresas(); track e.id) {
+        <div class="card p-4">
+          <p class="font-medium text-ink">{{ e.nombre }}</p>
+          <p class="text-sm text-body">{{ e.propietarioNombre }} {{ e.propietarioApellido }}</p>
+          <p class="text-xs text-muted">CUIT: {{ e.cuit || '—' }}</p>
+          <p class="text-xs text-muted-soft mt-1">{{ e.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</p>
+          <a [routerLink]="['/superadmin/empresas', e.id]" class="btn btn-primary btn-sm mt-4 w-full">Revisar</a>
+        </div>
+      }
+    </div>
+  }
+</div>

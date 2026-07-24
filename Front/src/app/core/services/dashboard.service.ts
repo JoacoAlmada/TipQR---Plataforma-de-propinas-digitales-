@@ -39,4 +39,9 @@ export class DashboardService {
   reportesIa(): Observable<ReporteAutomatico[]> {
     return this.http.get<ReporteAutomatico[]>(`${this.API}/dashboard/reportes-ia`);
   }
+
+  /** Elimina un reporte automático. */
+  eliminarReporteIa(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/dashboard/reportes-ia/${id}`);
+  }
 }

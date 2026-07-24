@@ -23,7 +23,7 @@ class AgenteNotificacionServiceTest {
     @Test
     void redactar_conIa_parseaElJsonYMarcaGeneradoPorIa() {
         when(proveedorIa.disponible()).thenReturn(true);
-        when(proveedorIa.completar(anyString(), anyString(), eq(true))).thenReturn(
+        when(proveedorIa.completar(anyString(), anyString(), eq(false))).thenReturn(
                 "{\"titulo\":\"Reunión de equipo\",\"mensaje\":\"Mañana hay reunión a las 9.\",\"categoria\":\"HORARIO\"}");
 
         RedaccionNotificacionResponse r = servicio().redactar("che avisá que mañana reunión 9am");
@@ -37,7 +37,7 @@ class AgenteNotificacionServiceTest {
     @Test
     void redactar_conJsonEnvueltoEnFences_igualLoParsea() {
         when(proveedorIa.disponible()).thenReturn(true);
-        when(proveedorIa.completar(anyString(), anyString(), eq(true))).thenReturn(
+        when(proveedorIa.completar(anyString(), anyString(), eq(false))).thenReturn(
                 "```json\n{\"titulo\":\"Falta stock\",\"mensaje\":\"Reponer servilletas.\",\"categoria\":\"STOCK\"}\n```");
 
         RedaccionNotificacionResponse r = servicio().redactar("faltan servilletas, reponer");
@@ -49,7 +49,7 @@ class AgenteNotificacionServiceTest {
     @Test
     void redactar_categoriaInvalidaDeLaIa_seDeducePorPalabras() {
         when(proveedorIa.disponible()).thenReturn(true);
-        when(proveedorIa.completar(anyString(), anyString(), eq(true))).thenReturn(
+        when(proveedorIa.completar(anyString(), anyString(), eq(false))).thenReturn(
                 "{\"titulo\":\"Aviso\",\"mensaje\":\"Recordá el pago de sueldos.\",\"categoria\":\"CUALQUIERA\"}");
 
         RedaccionNotificacionResponse r = servicio().redactar("recordá el pago de sueldos");
@@ -73,7 +73,7 @@ class AgenteNotificacionServiceTest {
     @Test
     void redactar_siLaIaFalla_caeAlRespaldoLocal() {
         when(proveedorIa.disponible()).thenReturn(true);
-        when(proveedorIa.completar(anyString(), anyString(), eq(true)))
+        when(proveedorIa.completar(anyString(), anyString(), eq(false)))
                 .thenThrow(new IaException("timeout"));
 
         RedaccionNotificacionResponse r = servicio().redactar("reponer mercadería del depósito");

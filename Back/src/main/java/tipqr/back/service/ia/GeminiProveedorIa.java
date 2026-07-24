@@ -1,6 +1,7 @@
 package tipqr.back.service.ia;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -23,15 +24,18 @@ import java.util.Map;
 public class GeminiProveedorIa implements ProveedorIa {
 
     private final RestClient rest;
+    private final ObjectMapper objectMapper;
     private final String apiKey;
     private final String model;
     private final boolean enabled;
 
     public GeminiProveedorIa(
+            ObjectMapper objectMapper,
             @Value("${gemini.api-key:}") String apiKey,
-            @Value("${gemini.model:gemini-2.0-flash}") String model,
+            @Value("${gemini.model:gemini-flash-lite-latest}") String model,
             @Value("${gemini.api-base:https://generativelanguage.googleapis.com}") String apiBase,
             @Value("${gemini.enabled:true}") boolean enabled) {
+        this.objectMapper = objectMapper;
         this.apiKey = apiKey;
         this.model = model;
         this.enabled = enabled;
@@ -68,14 +72,18 @@ public class GeminiProveedorIa implements ProveedorIa {
         body.put("generationConfig", genConfig);
 
         try {
-            JsonNode resp = rest.post()
+            // Se lee como bytes y se parsea manualmente: algunas respuestas de Gemini
+            // llegan con Content-Type application/octet-stream y romperían el conversor a JsonNode.
+            byte[] raw = rest.post()
                     .uri("/v1beta/models/{model}:generateContent", model)
                     .header("x-goog-api-key", apiKey)
+                    .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
-                    .body(JsonNode.class);
+                    .body(byte[].class);
 
+            JsonNode resp = (raw == null || raw.length == 0) ? null : objectMapper.readTree(raw);
             String texto = extraerTexto(resp);
             if (texto == null || texto.isBlank()) {
                 throw new IaException("El proveedor de IA devolvió una respuesta vacía.");

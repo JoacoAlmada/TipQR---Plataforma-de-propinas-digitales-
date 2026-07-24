@@ -1,0 +1,94 @@
+<div>
+  <a routerLink="/superadmin/empresas" class="text-sm text-muted hover:text-ink transition-colors">← Volver a empresas</a>
+
+  @if (errorMsg()) { <div class="alert-error mt-4">{{ errorMsg() }}</div> }
+
+  @if (loading()) {
+    <div class="text-center py-12 text-muted-soft text-sm">Cargando empresa...</div>
+  } @else if (empresa(); as e) {
+    <div class="mt-4 grid lg:grid-cols-3 gap-6">
+
+      <!-- Datos -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="card p-6">
+          <h1 class="font-display text-2xl font-semibold text-ink">{{ e.nombre }}</h1>
+          @if (e.nombreFantasia) { <p class="text-sm text-muted">{{ e.nombreFantasia }}</p> }
+          <p class="text-xs text-muted-soft mt-1">Dada de alta el {{ e.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</p>
+
+          <div class="grid sm:grid-cols-2 gap-4 mt-5 text-sm">
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Rubro</p><p class="text-ink">{{ e.rubro || '—' }}</p></div>
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">CUIT</p><p class="text-ink">{{ e.cuit || '—' }}</p></div>
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Provincia</p><p class="text-ink">{{ e.provincia || '—' }}</p></div>
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Dirección</p><p class="text-ink">{{ e.calle || '—' }} {{ e.numeracion || '' }}</p></div>
+          </div>
+        </div>
+
+        <!-- Propietario -->
+        <div class="card p-6">
+          <h2 class="font-display text-lg font-semibold text-ink mb-3">Propietario</h2>
+          <div class="grid sm:grid-cols-2 gap-4 text-sm">
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Nombre</p><p class="text-ink">{{ e.propietarioNombre }} {{ e.propietarioApellido }}</p></div>
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Email</p><p class="text-ink">{{ e.propietarioEmail }}</p></div>
+            <div><p class="text-xs uppercase tracking-wider text-muted-soft">Teléfono</p><p class="text-ink">{{ e.propietarioTelefono || '—' }}</p></div>
+          </div>
+          <p class="text-xs text-muted-soft mt-3">Este dueño ya está validado en el sistema. Solo se valida la empresa nueva.</p>
+        </div>
+
+        <!-- Constancia -->
+        <div class="card p-6">
+          <h2 class="font-display text-lg font-semibold text-ink mb-3">Constancia de AFIP</h2>
+          @if (e.constanciaCargada) {
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">📄</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm text-ink truncate">{{ e.constanciaNombre }}</p>
+              </div>
+              <button (click)="verConstancia()" [disabled]="cargandoDoc()" class="btn btn-secondary btn-sm">
+                @if (cargandoDoc()) { Abriendo… } @else { Ver }
+              </button>
+            </div>
+
+            @if (previewUrl(); as url) {
+              <div class="mt-4">
+                <div class="flex justify-end mb-2">
+                  <button (click)="cerrarPreview()" class="text-xs text-muted hover:text-ink">Cerrar visor ✕</button>
+                </div>
+                <iframe [src]="url" class="w-full h-[70vh] rounded-lg border border-hairline"></iframe>
+              </div>
+            }
+          } @else {
+            <p class="text-sm text-muted">La empresa todavía no tiene la constancia cargada.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="lg:col-span-1">
+        <div class="card p-6 lg:sticky lg:top-6">
+          <h2 class="font-display text-lg font-semibold text-ink mb-1">Decisión</h2>
+          <p class="text-sm text-muted mb-4">Aprobá la empresa para que el dueño pueda gestionarla, o rechazala indicando el motivo.</p>
+
+          @if (!mostrarRechazo()) {
+            <button (click)="aprobar()" [disabled]="procesando()" class="btn btn-primary w-full mb-2">
+              @if (procesando()) { Procesando… } @else { Aprobar empresa }
+            </button>
+            <button (click)="mostrarRechazo.set(true)" [disabled]="procesando()" class="btn btn-secondary w-full">
+              Rechazar
+            </button>
+          } @else {
+            <label class="label">Motivo del rechazo</label>
+            <textarea rows="3" class="input h-auto py-2.5 mb-3" placeholder="Ej: la constancia no corresponde al CUIT informado"
+              [value]="motivoRechazo()" (input)="motivoRechazo.set($any($event.target).value)"></textarea>
+            <button (click)="confirmarRechazo()" [disabled]="procesando()" class="btn btn-primary w-full mb-2"
+              style="background-color:#b00000">
+              @if (procesando()) { Procesando… } @else { Confirmar rechazo }
+            </button>
+            <button (click)="mostrarRechazo.set(false)" [disabled]="procesando()" class="btn btn-secondary w-full">
+              Volver
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
